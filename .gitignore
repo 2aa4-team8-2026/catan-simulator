@@ -1,0 +1,15 @@
+# system
+*.DS_Store
+
+# JetBrains
+.idea
+*.iml
+out/
+
+# vscode
+.vscode
+
+# eclipse
+*.project
+.classpath
+.settings/
