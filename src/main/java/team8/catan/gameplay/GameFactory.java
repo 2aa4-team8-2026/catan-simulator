@@ -1,18 +1,18 @@
-package gameplay;
+package team8.catan.gameplay;
 
-import board.Board;
-import board.Edge;
-import board.Node;
-import board.ResourceType;
-import configuration.GameConfig;
-import configuration.GameConfigLoader;
-import configuration.JsonLoader;
-import dice.TwoDice;
-import output.ActionLogger;
-import output.ConsoleActionLogger;
-import players.Player;
-import players.RandomAgent;
-import rules.RuleChecker;
+import team8.catan.board.Board;
+import team8.catan.board.Edge;
+import team8.catan.board.Node;
+import team8.catan.board.ResourceType;
+import team8.catan.configuration.GameConfig;
+import team8.catan.configuration.GameConfigLoader;
+import team8.catan.configuration.JsonLoader;
+import team8.catan.dice.TwoDice;
+import team8.catan.output.ActionLogger;
+import team8.catan.output.ConsoleActionLogger;
+import team8.catan.players.Player;
+import team8.catan.players.RandomAgent;
+import team8.catan.rules.RuleChecker;
 
 import java.io.IOException;
 import java.nio.file.Path;

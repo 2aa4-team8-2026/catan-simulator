@@ -1,4 +1,4 @@
-package configuration;
+package team8.catan.configuration;
 
 // todo: add javadoc
 public final class GameConfig {

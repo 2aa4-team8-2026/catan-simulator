@@ -1,4 +1,4 @@
-package board;
+package team8.catan.board;
 
 public class Node {
     public static final int UNOWNED = -1;

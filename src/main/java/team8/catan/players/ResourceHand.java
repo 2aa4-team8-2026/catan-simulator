@@ -1,7 +1,7 @@
-package players;
+package team8.catan.players;
 
-import board.ResourceType;
-import actions.ActionType;
+import team8.catan.board.ResourceType;
+import team8.catan.actions.ActionType;
 
 import java.util.HashMap;
 import java.util.Map;

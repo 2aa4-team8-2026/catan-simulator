@@ -1,11 +1,11 @@
-package rules;
+package team8.catan.rules;
 
-import board.Board;
-import actions.Action;
-import actions.ActionFeature;
-import actions.ActionType;
-import players.Player;
-import gameplay.GamePhase;
+import team8.catan.board.Board;
+import team8.catan.actions.Action;
+import team8.catan.actions.ActionFeature;
+import team8.catan.actions.ActionType;
+import team8.catan.players.Player;
+import team8.catan.gameplay.GamePhase;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;

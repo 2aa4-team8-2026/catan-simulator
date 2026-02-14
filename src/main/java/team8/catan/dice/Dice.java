@@ -1,4 +1,4 @@
-package dice;
+package team8.catan.dice;
 
 import java.util.Objects;
 import java.util.Random;

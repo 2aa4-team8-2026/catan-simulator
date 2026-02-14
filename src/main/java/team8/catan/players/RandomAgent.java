@@ -1,11 +1,11 @@
-package players;
+package team8.catan.players;
 
-import board.Board;
-import actions.Action;
-import actions.ActionTarget;
-import actions.ActionType;
-import gameplay.GamePhase;
-import rules.RuleChecker;
+import team8.catan.board.Board;
+import team8.catan.actions.Action;
+import team8.catan.actions.ActionTarget;
+import team8.catan.actions.ActionType;
+import team8.catan.gameplay.GamePhase;
+import team8.catan.rules.RuleChecker;
 
 import java.util.List;
 import java.util.Random;

@@ -1,9 +1,9 @@
-package players;
+package team8.catan.players;
 
-import board.Board;
-import actions.Action;
-import gameplay.GamePhase;
-import rules.RuleChecker;
+import team8.catan.board.Board;
+import team8.catan.actions.Action;
+import team8.catan.gameplay.GamePhase;
+import team8.catan.rules.RuleChecker;
 
 public abstract class Player {
     private final int id;

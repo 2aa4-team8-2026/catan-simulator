@@ -1,7 +1,7 @@
-package actions;
+package team8.catan.actions;
 
-import board.Board;
-import players.Player;
+import team8.catan.board.Board;
+import team8.catan.players.Player;
 
 public interface ActionExecutor {
     ActionType supportedType();

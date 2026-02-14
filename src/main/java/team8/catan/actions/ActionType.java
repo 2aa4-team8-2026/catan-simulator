@@ -1,8 +1,8 @@
-package actions;
+package team8.catan.actions;
 
-import board.Board;
-import board.ResourceType;
-import board.StructureType;
+import team8.catan.board.Board;
+import team8.catan.board.ResourceType;
+import team8.catan.board.StructureType;
 
 import java.util.Map;
 

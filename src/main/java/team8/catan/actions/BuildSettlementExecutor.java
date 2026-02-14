@@ -1,8 +1,8 @@
-package actions;
+package team8.catan.actions;
 
-import board.Board;
-import board.Node;
-import players.Player;
+import team8.catan.board.Board;
+import team8.catan.board.Node;
+import team8.catan.players.Player;
 
 public final class BuildSettlementExecutor implements ActionExecutor {
     @Override

@@ -1,8 +1,8 @@
-package app;
+package team8.catan.app;
 
-import gameplay.Game;
-import gameplay.GameFactory;
-import players.Player;
+import team8.catan.gameplay.Game;
+import team8.catan.gameplay.GameFactory;
+import team8.catan.players.Player;
 
 import java.io.IOException;
 import java.nio.file.Path;

@@ -1,11 +1,11 @@
-package rules;
+package team8.catan.rules;
 
-import actions.Action;
-import actions.ActionType;
-import board.Board;
-import board.Node;
-import gameplay.GamePhase;
-import players.Player;
+import team8.catan.actions.Action;
+import team8.catan.actions.ActionType;
+import team8.catan.board.Board;
+import team8.catan.board.Node;
+import team8.catan.gameplay.GamePhase;
+import team8.catan.players.Player;
 
 public final class SettlementDistanceRuleModule implements RuleModule {
     @Override

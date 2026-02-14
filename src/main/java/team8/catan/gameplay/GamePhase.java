@@ -1,4 +1,4 @@
-package gameplay;
+package team8.catan.gameplay;
 
 public enum GamePhase {
     SETUP_SETTLEMENT,

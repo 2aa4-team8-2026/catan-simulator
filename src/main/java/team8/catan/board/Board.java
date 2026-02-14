@@ -1,4 +1,4 @@
-package board;
+package team8.catan.board;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;

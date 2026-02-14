@@ -1,7 +1,7 @@
-package output;
+package team8.catan.output;
 
-import actions.Action;
-import players.Player;
+import team8.catan.actions.Action;
+import team8.catan.players.Player;
 
 import java.util.List;
 

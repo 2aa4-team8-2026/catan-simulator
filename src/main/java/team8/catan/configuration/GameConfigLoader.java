@@ -1,4 +1,4 @@
-package configuration;
+package team8.catan.configuration;
 
 import java.io.IOException;
 import java.nio.file.Path;

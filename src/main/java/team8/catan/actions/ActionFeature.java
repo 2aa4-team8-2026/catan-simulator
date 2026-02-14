@@ -1,4 +1,4 @@
-package actions;
+package team8.catan.actions;
 
 public enum ActionFeature {
     CORE,

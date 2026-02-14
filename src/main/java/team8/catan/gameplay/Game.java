@@ -1,16 +1,16 @@
-package gameplay;
+package team8.catan.gameplay;
 
-import actions.*;
-import board.Board;
-import board.Node;
-import board.ResourceType;
-import board.StructureType;
-import output.ActionLogger;
-import output.ConsoleActionLogger;
-import players.Player;
-import rules.RuleChecker;
-import dice.Dice;
-import dice.TwoDice;
+import team8.catan.actions.*;
+import team8.catan.board.Board;
+import team8.catan.board.Node;
+import team8.catan.board.ResourceType;
+import team8.catan.board.StructureType;
+import team8.catan.output.ActionLogger;
+import team8.catan.output.ConsoleActionLogger;
+import team8.catan.players.Player;
+import team8.catan.rules.RuleChecker;
+import team8.catan.dice.Dice;
+import team8.catan.dice.TwoDice;
 
 import java.util.ArrayList;
 import java.util.EnumMap;

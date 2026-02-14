@@ -1,4 +1,4 @@
-package dice;
+package team8.catan.dice;
 
 public class TwoDice extends Dice {
     public TwoDice() {
