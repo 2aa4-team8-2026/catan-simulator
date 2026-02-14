@@ -1,0 +1,26 @@
+package actions;
+
+import board.Board;
+import board.Edge;
+import players.Player;
+
+public final class BuildRoadExecutor implements ActionExecutor {
+    @Override
+    public ActionType supportedType() {
+        return ActionType.BUILD_ROAD;
+    }
+
+    @Override
+    public boolean execute(Board board, Player player, Action action, boolean chargeCost) {
+        Edge edge = board.getEdge(action.getTargetId());
+        if (edge == null || !edge.isUnowned()) {
+            return false;
+        }
+
+        edge.placeRoad(player.getId());
+        if (chargeCost) {
+            player.applyActionCost(action);
+        }
+        return true;
+    }
+}
