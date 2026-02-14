@@ -6,35 +6,60 @@ package team8.catan.board;
 
 /************************************************************/
 /**
- * 
+ * Represents an intersection point on the board where settlements
+ * and cities can be built.
  */
 public class Node {
 	/**
-	 * 
+	 * Unique identifier for this node
 	 */
 	private int id;
 	/**
-	 * 
+	 * ID of the player who owns a structure here, or -1 if unoccupied
 	 */
 	private int ownerId;
 	/**
-	 * 
+	 * Type of structure built here (null if none)
 	 */
 	private StructureType structureType;
 
 	/**
+	 * Creates a new node with the specified properties.
 	 * 
-	 * @param id 
-	 * @param ownerId 
-	 * @param structureType 
+	 * @param id Unique node identifier
+	 * @param ownerId Player ID who owns this node (-1 if unoccupied)
+	 * @param structureType Type of structure at this node
 	 */
-	public void Node(int id, int ownerId, StructureType structureType) {
+	public Node(int id, int ownerId, StructureType structureType) {
+		this.id = id;
+		this.ownerId = ownerId;
+		this.structureType = structureType;
 	}
 
 	/**
+	 * Gets the type of structure at this node.
 	 * 
-	 * @return 
+	 * @return The structure type, or null if empty
 	 */
 	public StructureType getStructureType() {
+		return structureType;
+	}
+	
+	/**
+	 * Gets the ID of the player who owns this node.
+	 * 
+	 * @return Player ID or -1 if unoccupied
+	 */
+	public int getOwnerId() {
+		return ownerId;
+	}
+	
+	/**
+	 * Gets the unique ID of this node.
+	 * 
+	 * @return The node ID
+	 */
+	public int getId() {
+		return id;
 	}
 }

@@ -9,48 +9,143 @@ import team8.catan.board.ResourceType;
 
 /************************************************************/
 /**
- * 
+ * Manages a player's resource cards.
+ * Tracks how many of each resource type the player has
+ * and handles spending resources for building actions.
  */
 public class ResourceHand {
 	/**
-	 * 
+	 * Array holding the count of each resource type.
+	 * Indexed by ResourceType.ordinal()
 	 */
-	public int[] counts;
+	private int[] counts;
 
 	/**
+	 * Creates a new resource hand with the given counts.
 	 * 
-	 * @return 
+	 * @param counts Initial resource counts for each type
+	 */
+	public ResourceHand(int[] counts) {
+		// Make sure we have space for all resource types
+		if (counts == null || counts.length < ResourceType.values().length) {
+			this.counts = new int[ResourceType.values().length];
+		} else {
+			this.counts = counts;
+		}
+	}
+
+	/**
+	 * Calculates the total number of resource cards held.
+	 * 
+	 * @return Sum of all resource cards
 	 */
 	public int totalCards() {
+		int total = 0;
+		for (int count : counts) {
+			total += count;
+		}
+		return total;
 	}
 
 	/**
+	 * Checks if the player can afford a specific action.
+	 * Uses standard Catan building costs:
+	 * - Road: 1 brick, 1 lumber
+	 * - Settlement: 1 brick, 1 lumber, 1 wool, 1 grain
+	 * - City: 3 ore, 2 grain
 	 * 
-	 * @param actionType 
-	 * @return 
+	 * @param actionType The type of action to check
+	 * @return true if the player has enough resources, false otherwise
 	 */
 	public boolean canAfford(ActionType actionType) {
+		if (actionType == null) {
+			return false;
+		}
+		
+		switch (actionType) {
+			case BUILD_ROAD:
+				// Road costs: 1 brick, 1 lumber
+				return counts[ResourceType.BRICK.ordinal()] >= 1 &&
+				       counts[ResourceType.LUMBER.ordinal()] >= 1;
+				       
+			case BUILD_SETTLEMENT:
+				// Settlement costs: 1 brick, 1 lumber, 1 wool, 1 grain
+				return counts[ResourceType.BRICK.ordinal()] >= 1 &&
+				       counts[ResourceType.LUMBER.ordinal()] >= 1 &&
+				       counts[ResourceType.WOOL.ordinal()] >= 1 &&
+				       counts[ResourceType.GRAIN.ordinal()] >= 1;
+				       
+			case BUILD_CITY:
+				// City costs: 3 ore, 2 grain
+				return counts[ResourceType.ORE.ordinal()] >= 3 &&
+				       counts[ResourceType.GRAIN.ordinal()] >= 2;
+				       
+			case PASS:
+				// Passing is always free
+				return true;
+				
+			default:
+				return false;
+		}
 	}
 
 	/**
+	 * Adds resources of a specific type to the hand.
 	 * 
-	 * @param type 
-	 * @param n 
+	 * @param type The resource type to add
+	 * @param n The number of cards to add
 	 */
 	public void add(ResourceType type, int n) {
+		if (type != null && n > 0) {
+			counts[type.ordinal()] += n;
+		}
 	}
 
 	/**
+	 * Spends the resources required for a specific action.
+	 * Should only be called after checking canAfford().
 	 * 
-	 * @param actionType 
+	 * @param actionType The action being performed
 	 */
 	public void spendFor(ActionType actionType) {
+		if (actionType == null) {
+			return;
+		}
+		
+		switch (actionType) {
+			case BUILD_ROAD:
+				counts[ResourceType.BRICK.ordinal()] -= 1;
+				counts[ResourceType.LUMBER.ordinal()] -= 1;
+				break;
+				
+			case BUILD_SETTLEMENT:
+				counts[ResourceType.BRICK.ordinal()] -= 1;
+				counts[ResourceType.LUMBER.ordinal()] -= 1;
+				counts[ResourceType.WOOL.ordinal()] -= 1;
+				counts[ResourceType.GRAIN.ordinal()] -= 1;
+				break;
+				
+			case BUILD_CITY:
+				counts[ResourceType.ORE.ordinal()] -= 3;
+				counts[ResourceType.GRAIN.ordinal()] -= 2;
+				break;
+				
+			case PASS:
+				// No cost for passing
+				break;
+		}
 	}
-
+	
 	/**
+	 * Gets the count of a specific resource type.
 	 * 
-	 * @param counts 
+	 * @param type The resource type to query
+	 * @return The number of cards of that type
 	 */
-	public void ResourceHand(int[] counts) {
+	public int getCount(ResourceType type) {
+		if (type == null) {
+			return 0;
+		}
+		return counts[type.ordinal()];
 	}
 }

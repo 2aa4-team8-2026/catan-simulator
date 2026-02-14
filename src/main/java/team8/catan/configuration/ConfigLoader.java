@@ -6,20 +6,29 @@ package team8.catan.configuration;
 
 /************************************************************/
 /**
- * 
+ * Loads simulation configuration from external sources.
  */
 public class ConfigLoader {
+	
 	/**
+	 * Loads a configuration from a file or resource.
+	 * For now, this returns a default configuration.
+	 * In a full implementation, this would parse a config file
+	 * and extract settings like maxRounds, player count, etc.
 	 * 
-	 * @param path 
-	 * @return 
+	 * @param path Path to the configuration file
+	 * @return A SimulationConfig instance with loaded settings
 	 */
 	public SimulationConfig load(String path) {
+		// Return a default configuration
+		// This can be expanded later to read from actual files
+		return new SimulationConfig(10);
 	}
 
 	/**
-	 * 
+	 * Default constructor.
 	 */
-	public void ConfigLoader() {
+	public ConfigLoader() {
+		// Nothing to initialize
 	}
 }

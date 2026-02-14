@@ -6,29 +6,49 @@ package team8.catan.configuration;
 
 /************************************************************/
 /**
- * 
+ * Holds configuration settings for the simulation.
+ * Controls parameters like how many rounds the game should run.
  */
 public class SimulationConfig {
 	/**
-	 * 
-	 */
-	public undef maxRounds;
-	/**
-	 * 
+	 * Maximum number of rounds before the game terminates
 	 */
 	private int maxRounds;
 
 	/**
+	 * Creates a new simulation configuration.
 	 * 
-	 * @return 
+	 * @param maxRounds Maximum number of rounds to simulate
 	 */
-	public boolean validate() {
+	public SimulationConfig(int maxRounds) {
+		this.maxRounds = maxRounds;
 	}
 
 	/**
+	 * Validates the configuration settings.
+	 * Checks that maxRounds is a positive value.
 	 * 
-	 * @param maxRounds 
+	 * @return true if the configuration is valid, false otherwise
 	 */
-	public void SimulationConfig(int maxRounds) {
+	public boolean validate() {
+		return maxRounds > 0;
+	}
+	
+	/**
+	 * Gets the maximum number of rounds.
+	 * 
+	 * @return The max rounds setting
+	 */
+	public int getMaxRounds() {
+		return maxRounds;
+	}
+	
+	/**
+	 * Sets the maximum number of rounds.
+	 * 
+	 * @param maxRounds The new max rounds value
+	 */
+	public void setMaxRounds(int maxRounds) {
+		this.maxRounds = maxRounds;
 	}
 }

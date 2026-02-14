@@ -6,22 +6,46 @@ package team8.catan.gameplay;
 
 /************************************************************/
 /**
- * 
+ * Represents a single action a player can take during their turn.
+ * Actions have a type (build road, settlement, etc.) and a target
+ * location on the board.
  */
 public class Action {
 	/**
-	 * 
+	 * The type of action being performed
 	 */
-	private ActionType ActionType;
+	private ActionType actionType;
 	/**
-	 * 
+	 * ID of the board element this action targets (node or edge)
 	 */
-	private int targetID;
+	private int targetId;
 
 	/**
+	 * Creates a new action.
 	 * 
-	 * @param targetId 
+	 * @param actionType The type of action to perform
+	 * @param targetId The ID of the target location
 	 */
-	public void Action(int targetId) {
+	public Action(ActionType actionType, int targetId) {
+		this.actionType = actionType;
+		this.targetId = targetId;
+	}
+	
+	/**
+	 * Gets the type of this action.
+	 * 
+	 * @return The action type
+	 */
+	public ActionType getActionType() {
+		return actionType;
+	}
+	
+	/**
+	 * Gets the target ID for this action.
+	 * 
+	 * @return The target ID
+	 */
+	public int getTargetId() {
+		return targetId;
 	}
 }

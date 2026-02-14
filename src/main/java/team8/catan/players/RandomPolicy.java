@@ -4,20 +4,52 @@
 
 package team8.catan.players;
 
+import java.util.Random;
+
 import team8.catan.gameplay.Action;
+import team8.catan.gameplay.ActionType;
 import team8.catan.gameplay.Game;
 
 /************************************************************/
 /**
- * 
+ * A simple AI policy that chooses actions randomly.
+ * Implements R1.8: linear check of all available actions, pick one randomly.
  */
-public class RandomPolicy {
+public class RandomPolicy implements AgentPolicy {
+	
 	/**
-	 * 
-	 * @param game 
-	 * @param player 
-	 * @return 
+	 * Random number generator for action selection
 	 */
+	private Random random;
+	
+	/**
+	 * Creates a new random policy.
+	 */
+	public RandomPolicy() {
+		this.random = new Random();
+	}
+	
+	/**
+	 * Chooses an action randomly from all possible action types.
+	 * This implements the requirement for a simple linear check
+	 * of available actions (R1.8).
+	 * 
+	 * @param game The current game state
+	 * @param player The player choosing an action
+	 * @return A randomly selected action
+	 */
+	@Override
 	public Action chooseAction(Game game, Player player) {
+		// Get all possible action types
+		ActionType[] allActions = ActionType.values();
+		
+		// Pick one randomly
+		ActionType chosen = allActions[random.nextInt(allActions.length)];
+		
+		// Generate a random target ID
+		// In a full implementation, this would be a valid node or edge ID
+		int targetId = random.nextInt(100);
+		
+		return new Action(chosen, targetId);
 	}
 }

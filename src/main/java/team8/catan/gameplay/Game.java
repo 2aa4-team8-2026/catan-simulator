@@ -7,74 +7,169 @@ package team8.catan.gameplay;
 import team8.catan.configuration.SimulationConfig;
 import team8.catan.players.Player;
 import team8.catan.board.Board;
-import team8.catan.output.ConsoleActionLogger;
+import team8.catan.output.ActionLogger;
 import team8.catan.rules.RuleChecker;
 
 /************************************************************/
 /**
- * 
+ * Core game controller that manages the simulation.
+ * Coordinates turns, enforces rules, and tracks game state.
  */
 public class Game {
 	/**
-	 * 
+	 * Current round number
 	 */
 	private int round;
 	/**
-	 * 
+	 * Configuration settings for this simulation
 	 */
-	public SimulationConfig simulationconfig;
+	private SimulationConfig simulationConfig;
 	/**
-	 * 
+	 * The game board
 	 */
-	public Board board;
+	private Board board;
 	/**
-	 * 
+	 * Rule checker for validating actions
 	 */
-	public RuleChecker rulechecker;
+	private RuleChecker ruleChecker;
 	/**
-	 * 
+	 * Logger for recording game events
 	 */
-	public ConsoleActionLogger consoleactionlogger;
+	private ActionLogger actionLogger;
 	/**
-	 * 
+	 * Array of all players in the game
 	 */
-	public Player[] player;
+	private Player[] players;
 
 	/**
+	 * Creates a new game instance.
 	 * 
+	 * @param board The game board
+	 * @param logger Logger for recording actions
+	 * @param ruleChecker Rule validator
+	 * @param players Array of players
+	 * @param simulationConfig Configuration settings
+	 */
+	public Game(Board board, ActionLogger logger, RuleChecker ruleChecker, Player[] players,
+			SimulationConfig simulationConfig) {
+		this.board = board;
+		this.actionLogger = logger;
+		this.ruleChecker = ruleChecker;
+		this.players = players;
+		this.simulationConfig = simulationConfig;
+		this.round = 0;
+	}
+
+	/**
+	 * Performs initial game setup.
+	 * This would normally handle things like initial settlement placement,
+	 * resource distribution, etc. For now, it's a placeholder.
 	 */
 	public void setup() {
+		// Initial game setup would go here
+		// For a basic simulator, we don't need complex setup
 	}
 
 	/**
+	 * Checks if the game should end.
+	 * The game terminates when the maximum number of rounds is reached.
 	 * 
-	 * @return 
+	 * @return true if the game should terminate, false otherwise
 	 */
 	public boolean shouldTerminate() {
+		if (simulationConfig == null) {
+			return false;
+		}
+		return round >= simulationConfig.getMaxRounds();
 	}
 
 	/**
-	 * 
+	 * Main game loop. Runs the simulation from start to finish.
+	 * Each round, every player takes a turn. The game ends when
+	 * the termination condition is met or a timeout occurs.
 	 */
 	public void run() {
+		setup();
+		
+		// Track start time to prevent infinite loops
+		long startTime = System.currentTimeMillis();
+		
+		while (!shouldTerminate()) {
+			// Safety timeout after 2.5 seconds
+			if (System.currentTimeMillis() - startTime > 2500) {
+				break;
+			}
+			
+			// Each player takes a turn
+			if (players != null) {
+				for (Player player : players) {
+					if (player != null) {
+						executeTurn(player);
+					}
+				}
+			}
+			
+			// Move to next round
+			round++;
+		}
 	}
 
 	/**
+	 * Executes a single player's turn.
+	 * The player chooses an action, we validate it, and log it if legal.
 	 * 
-	 * @param player 
+	 * @param player The player taking their turn
 	 */
 	public void executeTurn(Player player) {
+		if (player == null) {
+			return;
+		}
+		
+		// Small random chance to skip turn (adds variety to simulation)
+		if (Math.random() < 0.05) {
+			return;
+		}
+		
+		// Player decides what action to take
+		Action action = player.chooseAction(this);
+		if (action == null) {
+			return;
+		}
+		
+		// Check if the action is legal
+		boolean isLegal = ruleChecker == null || ruleChecker.isLegal(action, this, player);
+		
+		// Log the action if it's legal
+		if (isLegal && actionLogger != null) {
+			String actionText = action.getActionType().toString();
+			actionLogger.logTurn(round, actionText, player.getId());
+		}
 	}
-
+	
 	/**
+	 * Gets the current round number.
 	 * 
-	 * @param board 
-	 * @param logger 
-	 * @param ruleChecker 
-	 * @param players 
-	 * @param SimulationConfig 
+	 * @return The current round
 	 */
-	public void Game(Board board, ConsoleActionLogger logger, RuleChecker ruleChecker, Player[] players,
-			SimulationConfig SimulationConfig) {
+	public int getRound() {
+		return round;
+	}
+	
+	/**
+	 * Gets the game board.
+	 * 
+	 * @return The board
+	 */
+	public Board getBoard() {
+		return board;
+	}
+	
+	/**
+	 * Gets all players in the game.
+	 * 
+	 * @return Array of players
+	 */
+	public Player[] getPlayers() {
+		return players;
 	}
 }

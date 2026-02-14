@@ -8,29 +8,44 @@ import team8.catan.players.Player;
 
 /************************************************************/
 /**
- * 
+ * Logs game actions to the console.
+ * Provides a simple text-based output of game events.
  */
-public class ConsoleActionLogger {
+public class ConsoleActionLogger implements ActionLogger {
+	
 	/**
-	 * 
-	 * @param round 
-	 * @param actionText 
-	 * @param playerID 
+	 * Creates a new console action logger.
 	 */
+	public ConsoleActionLogger() {
+		// Nothing to initialize
+	}
+	
+	/**
+	 * Logs a player's turn action to the console.
+	 * Displays the round number, player ID, and action taken.
+	 * 
+	 * @param round The current round number
+	 * @param actionText Description of the action
+	 * @param playerID ID of the player taking the action
+	 */
+	@Override
 	public void logTurn(int round, String actionText, int playerID) {
+		System.out.println("Round " + round + ": Player " + playerID + 
+		                   " performed action: " + actionText);
 	}
 
 	/**
+	 * Logs a player's victory points at the end of a round.
 	 * 
-	 * @param round 
-	 * @param player 
+	 * @param round The current round number
+	 * @param player The player whose VPs to log
 	 */
+	@Override
 	public void logRoundVPs(int round, Player player) {
-	}
-
-	/**
-	 * 
-	 */
-	public void ConesoleActionLogger() {
+		if (player == null) {
+			return;
+		}
+		System.out.println("Round " + round + ": Player " + player.getId() + 
+		                   " has " + player.getVictoryPoints() + " victory points");
 	}
 }

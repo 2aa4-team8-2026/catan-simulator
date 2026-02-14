@@ -9,47 +9,99 @@ import team8.catan.gameplay.Game;
 
 /************************************************************/
 /**
- * 
+ * Represents a player in the game.
+ * Each player has an ID, victory points, resources, and an AI policy
+ * that determines their behavior.
  */
 public class Player {
 	/**
-	 * 
+	 * Unique player identifier
 	 */
-	public int id;
+	private int id;
 	/**
-	 * 
+	 * Victory points earned by this player
 	 */
-	public int vp;
+	private int victoryPoints;
 	/**
-	 * 
+	 * Player's hand of resource cards
 	 */
-	public ResourceHand resourcehand;
+	private ResourceHand resourceHand;
 	/**
-	 * 
+	 * AI policy that controls this player's decisions
 	 */
-	public AgentPolicy agentpolicy;
+	private AgentPolicy agentPolicy;
 
 	/**
+	 * Creates a new player.
 	 * 
-	 * @param game 
-	 * @return 
+	 * @param id Unique player identifier
+	 * @param victoryPoints Initial victory points
+	 * @param resourceHand Starting resource hand
+	 * @param agentPolicy AI policy for decision making
+	 */
+	public Player(int id, int victoryPoints, ResourceHand resourceHand, AgentPolicy agentPolicy) {
+		this.id = id;
+		this.victoryPoints = victoryPoints;
+		this.resourceHand = resourceHand;
+		this.agentPolicy = agentPolicy;
+	}
+
+	/**
+	 * Chooses an action for this player's turn.
+	 * Delegates the decision to the player's AI policy.
+	 * 
+	 * @param game The current game state
+	 * @return The chosen action
 	 */
 	public Action chooseAction(Game game) {
+		if (agentPolicy == null) {
+			return null;
+		}
+		return agentPolicy.chooseAction(game, this);
 	}
 
 	/**
+	 * Gets the player's ID.
 	 * 
-	 * @param id 
-	 * @param vp 
-	 * @param ResourceHand 
-	 * @param AgentPolicy 
+	 * @return The player ID
 	 */
-	public void Player(int id, int vp, ResourceHand ResourceHand, AgentPolicy AgentPolicy) {
+	public int getId() {
+		return id;
 	}
-
+	
 	/**
+	 * Sets the player's ID.
 	 * 
+	 * @param id The new player ID
 	 */
-	public void setID() {
+	public void setId(int id) {
+		this.id = id;
+	}
+	
+	/**
+	 * Gets the player's victory points.
+	 * 
+	 * @return The victory points
+	 */
+	public int getVictoryPoints() {
+		return victoryPoints;
+	}
+	
+	/**
+	 * Sets the player's victory points.
+	 * 
+	 * @param vp The new victory points value
+	 */
+	public void setVictoryPoints(int vp) {
+		this.victoryPoints = vp;
+	}
+	
+	/**
+	 * Gets the player's resource hand.
+	 * 
+	 * @return The resource hand
+	 */
+	public ResourceHand getResourceHand() {
+		return resourceHand;
 	}
 }

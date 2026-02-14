@@ -6,64 +6,114 @@ package team8.catan.board;
 
 /************************************************************/
 /**
- * 
+ * Represents the game board, containing all tiles, nodes, and edges.
+ * Provides lookup methods to access board elements by ID.
  */
 public class Board {
 	/**
-	 * 
+	 * Array of all tiles on the board
 	 */
 	private Tile[] tiles;
 	/**
-	 * 
+	 * Array of all intersection nodes on the board
 	 */
 	private Node[] nodes;
 	/**
-	 * 
+	 * Array of all edges (paths) on the board
 	 */
 	private Edge[] edges;
-	/**
-	 * 
-	 */
-	public Tile[] tile;
-	/**
-	 * 
-	 */
-	public Edge[] edge;
-	/**
-	 * 
-	 */
-	public Node[] node;
 
 	/**
+	 * Creates a new board with the specified components.
 	 * 
-	 * @param id 
-	 * @return 
+	 * @param tiles Array of tiles forming the board
+	 * @param nodes Array of nodes (intersections)
+	 * @param edges Array of edges (paths between nodes)
+	 */
+	public Board(Tile[] tiles, Node[] nodes, Edge[] edges) {
+		this.tiles = tiles;
+		this.nodes = nodes;
+		this.edges = edges;
+	}
+
+	/**
+	 * Finds and returns a tile by its ID.
+	 * 
+	 * @param id The tile ID to search for
+	 * @return The tile with the given ID, or null if not found
 	 */
 	public Tile getTile(int id) {
+		if (tiles == null) {
+			return null;
+		}
+		for (Tile tile : tiles) {
+			if (tile != null && tile.getId() == id) {
+				return tile;
+			}
+		}
+		return null;
 	}
 
 	/**
+	 * Finds and returns a node by its ID.
 	 * 
-	 * @param id 
-	 * @return 
+	 * @param id The node ID to search for
+	 * @return The node with the given ID, or null if not found
 	 */
 	public Node getNode(int id) {
+		if (nodes == null) {
+			return null;
+		}
+		for (Node node : nodes) {
+			if (node != null && node.getId() == id) {
+				return node;
+			}
+		}
+		return null;
 	}
 
 	/**
+	 * Finds and returns an edge by its ID.
 	 * 
-	 * @return 
-	 * @param id 
+	 * @param id The edge ID to search for
+	 * @return The edge with the given ID, or null if not found
 	 */
 	public Edge getEdge(int id) {
+		if (edges == null) {
+			return null;
+		}
+		for (Edge edge : edges) {
+			if (edge != null && edge.getId() == id) {
+				return edge;
+			}
+		}
+		return null;
 	}
-
+	
 	/**
+	 * Gets all tiles on the board.
 	 * 
-	 * @param tiles 
-	 * @param nodes 
-	 * @param Edges 
+	 * @return Array of tiles
 	 */
-	public void Board(Tile[] tiles, Node[] nodes, Edge[] Edges) {
+	public Tile[] getTiles() {
+		return tiles;
+	}
+	
+	/**
+	 * Gets all nodes on the board.
+	 * 
+	 * @return Array of nodes
+	 */
+	public Node[] getNodes() {
+		return nodes;
+	}
+	
+	/**
+	 * Gets all edges on the board.
+	 * 
+	 * @return Array of edges
+	 */
+	public Edge[] getEdges() {
+		return edges;
 	}
 }

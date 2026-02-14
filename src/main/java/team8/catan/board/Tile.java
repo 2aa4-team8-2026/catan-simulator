@@ -6,40 +6,66 @@ package team8.catan.board;
 
 /************************************************************/
 /**
- * 
+ * Represents a single hexagonal tile on the Catan board.
+ * Each tile has a resource type, dice number, and adjacent nodes.
  */
 public class Tile {
 	/**
-	 * 
+	 * Unique identifier for this tile
 	 */
 	private int id;
 	/**
-	 * 
+	 * Type of resource this tile produces
 	 */
 	private ResourceType resourceType;
 	/**
-	 * 
+	 * Dice roll number that activates this tile
 	 */
 	private int diceNumber;
 	/**
-	 * 
+	 * IDs of nodes adjacent to this tile
 	 */
 	private int[] adjacentNodeIds;
 
 	/**
+	 * Creates a new tile with the specified properties.
 	 * 
-	 * @param id 
-	 * @param diceNumber 
-	 * @param adjacenNodeIds 
-	 * @param resourceType 
+	 * @param id Unique tile identifier
+	 * @param diceNumber Dice number for resource production
+	 * @param adjacentNodeIds Array of adjacent node IDs
+	 * @param resourceType Type of resource produced
 	 */
-	public void Tile(int id, int diceNumber, int[] adjacenNodeIds, ResourceType resourceType) {
+	public Tile(int id, int diceNumber, int[] adjacentNodeIds, ResourceType resourceType) {
+		this.id = id;
+		this.diceNumber = diceNumber;
+		this.adjacentNodeIds = adjacentNodeIds;
+		this.resourceType = resourceType;
 	}
 
 	/**
+	 * Gets the type of resource this tile produces.
 	 * 
-	 * @return 
+	 * @return The resource type
 	 */
 	public ResourceType getResourceType() {
+		return resourceType;
+	}
+	
+	/**
+	 * Gets the dice number for this tile.
+	 * 
+	 * @return The dice number
+	 */
+	public int getDiceNumber() {
+		return diceNumber;
+	}
+	
+	/**
+	 * Gets the unique ID of this tile.
+	 * 
+	 * @return The tile ID
+	 */
+	public int getId() {
+		return id;
 	}
 }

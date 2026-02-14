@@ -6,47 +6,74 @@ package team8.catan.board;
 
 /************************************************************/
 /**
- * 
+ * Represents a path between two nodes where roads can be built.
  */
 public class Edge {
 	/**
-	 * 
+	 * Unique identifier for this edge
 	 */
 	private int id;
 	/**
-	 * 
+	 * ID of first node this edge connects
 	 */
-	private int nodeA;
+	private int nodeAId;
 	/**
-	 * 
+	 * ID of second node this edge connects
 	 */
-	private int nodeB;
+	private int nodeBId;
 	/**
-	 * 
+	 * ID of the player who built a road here, or -1 if no road
 	 */
 	private int roadOwnerId;
 
 	/**
+	 * Creates a new edge connecting two nodes.
 	 * 
-	 * @param id 
-	 * @param roadOwnerId 
-	 * @param nodeA 
-	 * @param NodeB 
+	 * @param id Unique edge identifier
+	 * @param roadOwnerId Player ID who owns the road (-1 if no road)
+	 * @param nodeAId ID of first connected node
+	 * @param nodeBId ID of second connected node
 	 */
-	public void Edge(int id, int roadOwnerId, Node nodeA, Node NodeB) {
+	public Edge(int id, int roadOwnerId, int nodeAId, int nodeBId) {
+		this.id = id;
+		this.roadOwnerId = roadOwnerId;
+		this.nodeAId = nodeAId;
+		this.nodeBId = nodeBId;
 	}
 
 	/**
+	 * Gets the ID of the first node this edge connects.
 	 * 
-	 * @return 
+	 * @return Node A's ID
 	 */
-	public Node getNodeA() {
+	public int getNodeAId() {
+		return nodeAId;
 	}
 
 	/**
+	 * Gets the ID of the second node this edge connects.
 	 * 
-	 * @return 
+	 * @return Node B's ID
 	 */
-	public Node getNodeB() {
+	public int getNodeBId() {
+		return nodeBId;
+	}
+	
+	/**
+	 * Gets the ID of the player who owns the road on this edge.
+	 * 
+	 * @return Player ID or -1 if no road
+	 */
+	public int getRoadOwnerId() {
+		return roadOwnerId;
+	}
+	
+	/**
+	 * Gets the unique ID of this edge.
+	 * 
+	 * @return The edge ID
+	 */
+	public int getId() {
+		return id;
 	}
 }

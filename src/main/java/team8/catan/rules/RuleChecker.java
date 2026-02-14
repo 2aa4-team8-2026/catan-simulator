@@ -5,41 +5,64 @@
 package team8.catan.rules;
 
 import team8.catan.gameplay.Action;
+import team8.catan.gameplay.ActionType;
 import team8.catan.gameplay.Game;
 import team8.catan.players.Player;
-import team8.catan.board.Board;
+import team8.catan.players.ResourceHand;
 
 /************************************************************/
 /**
- * 
+ * Validates actions against game rules.
+ * Ensures players follow Catan rules and have required resources.
+ * Implements R1.6: invariants for valid game states.
  */
 public class RuleChecker {
+	
 	/**
-	 * 
+	 * Creates a new rule checker.
 	 */
-	public Board board;
+	public RuleChecker() {
+		// Nothing to initialize
+	}
+	
 	/**
+	 * Checks if an action is legal according to game rules.
+	 * Basic validation includes:
+	 * - Player has enough resources for the action
+	 * - Action type is valid
 	 * 
-	 */
-	public Player player;
-	/**
+	 * In a full implementation, this would also check:
+	 * - Distance rule for settlements
+	 * - Road connectivity
+	 * - Available board spaces
 	 * 
-	 */
-	public Action action;
-
-	/**
-	 * 
-	 * @param action 
-	 * @param game 
-	 * @param player 
-	 * @return 
+	 * @param action The action to validate
+	 * @param game The current game state
+	 * @param player The player attempting the action
+	 * @return true if the action is legal, false otherwise
 	 */
 	public boolean isLegal(Action action, Game game, Player player) {
-	}
-
-	/**
-	 * 
-	 */
-	public void RuleChecker() {
+		if (action == null || player == null) {
+			return false;
+		}
+		
+		ActionType type = action.getActionType();
+		if (type == null) {
+			return false;
+		}
+		
+		// Passing is always legal
+		if (type == ActionType.PASS) {
+			return true;
+		}
+		
+		// Check if player has enough resources
+		ResourceHand hand = player.getResourceHand();
+		if (hand == null) {
+			return false;
+		}
+		
+		// Validate resource requirements
+		return hand.canAfford(type);
 	}
 }
