@@ -21,7 +21,8 @@ public class RuleChecker {
             new SettlementDistanceRuleModule(),
             new SettlementRoadConnectionRuleModule(),
             new CityRequiresSettlementRuleModule(),
-            new RoadConnectionRuleModule()
+            new RoadConnectionRuleModule(),
+            new RobberRuleModule()
         ));
     }
 
@@ -62,9 +63,15 @@ public class RuleChecker {
         return isLegalInternal(action, board, player, phase);
     }
 
-    public void onDiceRolled(int diceRoll, Board board, List<? extends Player> players, GamePhase phase) {
+    public void onDiceRolled(
+        int diceRoll,
+        Player roller,
+        Board board,
+        List<? extends Player> players,
+        GamePhase phase
+    ) {
         for (RuleModule module : modules) {
-            module.onDiceRolled(diceRoll, board, players, phase);
+            module.onDiceRolled(diceRoll, roller, board, players, phase);
         }
     }
 
