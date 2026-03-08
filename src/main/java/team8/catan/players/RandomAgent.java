@@ -13,12 +13,12 @@ import java.util.Random;
 public class RandomAgent extends Player {
     private final Random random;
 
-    public RandomAgent(int id) {
-        this(id, new Random());
+    public RandomAgent(int id, PlayerColor color) {
+        this(id, color, new Random());
     }
 
-    public RandomAgent(int id, Random random) {
-        super(id);
+    public RandomAgent(int id, PlayerColor color, Random random) {
+        super(id, color);
         this.random = random;
     }
 

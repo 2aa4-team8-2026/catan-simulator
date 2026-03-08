@@ -4,7 +4,9 @@ import team8.catan.board.ResourceType;
 import team8.catan.actions.ActionType;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class ResourceHand {
     private final Map<ResourceType, Integer> counts;
@@ -36,6 +38,50 @@ public class ResourceHand {
 
     public void add(ResourceType type, int amount) {
         counts.put(type, counts.get(type) + amount);
+    }
+
+    public int getCount(ResourceType type) {
+        return counts.getOrDefault(type, 0);
+    }
+
+    public Map<ResourceType, Integer> snapshot() {
+        return new LinkedHashMap<>(counts);
+    }
+
+    public int discardRandomCards(int count, Random random) {
+        if (count <= 0) {
+            return 0;
+        }
+
+        int discarded = 0;
+        for (int i = 0; i < count; i++) {
+            ResourceType removed = removeRandomCard(random);
+            if (removed == null) {
+                break;
+            }
+            discarded++;
+        }
+        return discarded;
+    }
+
+    public ResourceType removeRandomCard(Random random) {
+        int total = totalCards();
+        if (total <= 0) {
+            return null;
+        }
+
+        int pick = random.nextInt(total);
+        int cumulative = 0;
+        for (ResourceType type : ResourceType.values()) {
+            int available = counts.getOrDefault(type, 0);
+            cumulative += available;
+            if (pick < cumulative) {
+                counts.put(type, available - 1);
+                return type;
+            }
+        }
+
+        return null;
     }
 
     public void spendFor(ActionType actionType) {

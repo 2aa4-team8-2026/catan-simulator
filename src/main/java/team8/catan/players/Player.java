@@ -7,11 +7,13 @@ import team8.catan.rules.RuleChecker;
 
 public abstract class Player {
     private final int id;
+    private final PlayerColor color;
     private int victoryPoints;
     private final ResourceHand resourceHand;
 
-    protected Player(int id) {
+    protected Player(int id, PlayerColor color) {
         this.id = id;
+        this.color = color;
         this.victoryPoints = 0;
         this.resourceHand = new ResourceHand();
     }
@@ -22,6 +24,10 @@ public abstract class Player {
 
     public int getVictoryPoints() {
         return victoryPoints;
+    }
+
+    public PlayerColor getColor() {
+        return color;
     }
 
     public ResourceHand getResourceHand() {
