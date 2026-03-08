@@ -17,6 +17,11 @@ public enum ActionType {
         public int[] getValidTargets(Board board, int playerId) {
             return board.getValidRoadTargets(playerId);
         }
+
+        @Override
+        public String describe(int targetId) {
+            return "build a road on edge " + targetId;
+        }
     },
     BUILD_SETTLEMENT(TargetKind.NODE, ActionFeature.CORE) {
         @Override
@@ -27,6 +32,11 @@ public enum ActionType {
         @Override
         public int[] getValidTargets(Board board, int playerId) {
             return board.getValidSettlementTargets(playerId);
+        }
+
+        @Override
+        public String describe(int targetId) {
+            return "build a settlement on node " + targetId;
         }
     },
     BUILD_CITY(TargetKind.NODE, ActionFeature.CORE) {
@@ -39,6 +49,11 @@ public enum ActionType {
         public int[] getValidTargets(Board board, int playerId) {
             return board.getValidCityTargets(playerId);
         }
+
+        @Override
+        public String describe(int targetId) {
+            return "build a city on node " + targetId;
+        }
     },
     PASS(TargetKind.NONE, ActionFeature.CORE) {
         @Override
@@ -49,6 +64,11 @@ public enum ActionType {
         @Override
         public int[] getValidTargets(Board board, int playerId) {
             return new int[] { ActionTarget.NO_TARGET_ID };
+        }
+
+        @Override
+        public String describe(int targetId) {
+            return "pass";
         }
     };
 
@@ -71,4 +91,6 @@ public enum ActionType {
     public abstract Map<ResourceType, Integer> getCost();
 
     public abstract int[] getValidTargets(Board board, int playerId);
+
+    public abstract String describe(int targetId);
 }
