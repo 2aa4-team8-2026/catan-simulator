@@ -25,4 +25,9 @@ public class GameConfigTest {
     void GameConfig_rejectsRoundsAboveMaxBoundary() {
         assertThrows(IllegalArgumentException.class, () -> new GameConfig(4, 8193, 10, 2));
     }
+
+    @Test
+    void GameConfig_rejectsRoundsBelowMinBoundary() {
+        assertThrows(IllegalArgumentException.class, () -> new GameConfig(4, 0, 10, 2));
+    }
 }
