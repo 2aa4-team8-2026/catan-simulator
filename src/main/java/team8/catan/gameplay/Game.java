@@ -7,7 +7,9 @@ import team8.catan.board.ResourceType;
 import team8.catan.board.StructureType;
 import team8.catan.output.ActionLogger;
 import team8.catan.output.ConsoleActionLogger;
+import team8.catan.output.GameStateWriter;
 import team8.catan.players.Player;
+import team8.catan.players.HumanPlayer;
 import team8.catan.rules.RuleChecker;
 import team8.catan.dice.Dice;
 import team8.catan.dice.TwoDice;
@@ -27,12 +29,24 @@ public class Game {
     private final int victoryPointsToWin;
     private final Map<ActionType, ActionExecutor> executors;
     private final ActionLogger actionLogger;
+    private final StepForwardGate stepForwardGate;
+    private final GameStateWriter stateWriter;
 
     private int round;
     private GamePhase phase;
 
     public Game(Board board, List<Player> players, RuleChecker ruleChecker, int maxRounds, int victoryPointsToWin) {
-        this(board, players, ruleChecker, maxRounds, victoryPointsToWin, new TwoDice(), new ConsoleActionLogger());
+        this(
+            board,
+            players,
+            ruleChecker,
+            maxRounds,
+            victoryPointsToWin,
+            new TwoDice(),
+            new ConsoleActionLogger(),
+            new NoOpStepForwardGate(),
+            (ignoredBoard, ignoredPlayers) -> { }
+        );
     }
 
     public Game(
@@ -43,7 +57,17 @@ public class Game {
         int victoryPointsToWin,
         Dice dice
     ) {
-        this(board, players, ruleChecker, maxRounds, victoryPointsToWin, dice, new ConsoleActionLogger());
+        this(
+            board,
+            players,
+            ruleChecker,
+            maxRounds,
+            victoryPointsToWin,
+            dice,
+            new ConsoleActionLogger(),
+            new NoOpStepForwardGate(),
+            (ignoredBoard, ignoredPlayers) -> { }
+        );
     }
 
     public Game(
@@ -53,7 +77,9 @@ public class Game {
         int maxRounds,
         int victoryPointsToWin,
         Dice dice,
-        ActionLogger actionLogger
+        ActionLogger actionLogger,
+        StepForwardGate stepForwardGate,
+        GameStateWriter stateWriter
     ) {
         this.board = Objects.requireNonNull(board, "board");
         this.players = new ArrayList<>(Objects.requireNonNull(players, "players"));
@@ -63,6 +89,8 @@ public class Game {
         this.victoryPointsToWin = victoryPointsToWin;
         this.executors = buildExecutors();
         this.actionLogger = Objects.requireNonNull(actionLogger, "actionLogger");
+        this.stepForwardGate = Objects.requireNonNull(stepForwardGate, "stepForwardGate");
+        this.stateWriter = Objects.requireNonNull(stateWriter, "stateWriter");
         this.round = 0;
         this.phase = GamePhase.SETUP_SETTLEMENT;
     }
@@ -77,6 +105,7 @@ public class Game {
                 if (shouldTerminate()) {
                     break;
                 }
+                stepForwardGate.awaitGo(round, player, phase);
                 executeTurn(player);
             }
             actionLogger.logRoundVictoryPoints(round, players);
@@ -103,9 +132,11 @@ public class Game {
     private void runSetupPhase() {
         for (Player player : players) {
             phase = GamePhase.SETUP_SETTLEMENT;
+            stepForwardGate.awaitGo(0, player, phase);
             executeSetupAction(player, ActionType.BUILD_SETTLEMENT);
 
             phase = GamePhase.SETUP_ROAD;
+            stepForwardGate.awaitGo(0, player, phase);
             executeSetupAction(player, ActionType.BUILD_ROAD);
         }
     }
@@ -120,12 +151,14 @@ public class Game {
 
         if (chosenAction != null && chosenAction.getActionType() == requiredType) {
             boolean applied = executeAction(player, chosenAction, false);
-            actionLogger.logAction(true, player, chosenAction, applied);
+            actionLogger.logAction(0, player, chosenAction, applied);
+            stateWriter.write(board, players);
             if (!applied) {
                 Action fallback = firstLegalAction(player, requiredType);
                 if (fallback != null && !fallback.equals(chosenAction)) {
                     boolean fallbackApplied = executeAction(player, fallback, false);
-                    actionLogger.logAction(true, player, fallback, fallbackApplied);
+                    actionLogger.logAction(0, player, fallback, fallbackApplied);
+                    stateWriter.write(board, players);
                 }
             }
         }
@@ -142,9 +175,14 @@ public class Game {
     }
 
     private void executeTurn(Player player) {
+        if (player instanceof HumanPlayer humanPlayer) {
+            humanPlayer.beginTurn();
+            humanPlayer.awaitRollCommand();
+        }
+
         int diceRoll = rollDice();
 
-        ruleChecker.onDiceRolled(diceRoll, board, players, phase);
+        ruleChecker.onDiceRolled(diceRoll, player, board, players, phase);
         if (diceRoll != 7) {
             distributeResources(diceRoll);
         }
@@ -157,7 +195,8 @@ public class Game {
         }
 
         boolean applied = executeAction(player, action, true);
-        actionLogger.logAction(false, player, action, applied);
+        actionLogger.logAction(round, player, action, applied);
+        stateWriter.write(board, players);
     }
 
     private int rollDice() {
