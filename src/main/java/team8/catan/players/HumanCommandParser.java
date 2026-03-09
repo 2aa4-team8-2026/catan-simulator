@@ -1,9 +1,11 @@
 package team8.catan.players;
 
+import team8.catan.actions.ActionType;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class HumanCommandParser {
+public class HumanCommandParser {
     private static final Pattern SETTLEMENT_PATTERN = Pattern.compile("(?i)^build\\s+settlement\\s+(\\d+)\\s*$");
     private static final Pattern CITY_PATTERN = Pattern.compile("(?i)^build\\s+city\\s+(\\d+)\\s*$");
     private static final Pattern ROAD_PATTERN = Pattern.compile("(?i)^build\\s+road\\s+(\\d+)\\s*,\\s*(\\d+)\\s*$");
@@ -32,12 +34,6 @@ public final class HumanCommandParser {
         if (input.equalsIgnoreCase("list") || input.equalsIgnoreCase("ls")) {
             return HumanCommand.list();
         }
-        if (input.equalsIgnoreCase("actions")
-            || input.equalsIgnoreCase("a")
-            || input.equalsIgnoreCase("help")
-            || input.equals("?")) {
-            return HumanCommand.showActions();
-        }
         if (input.equalsIgnoreCase("build") || input.equalsIgnoreCase("b")) {
             return HumanCommand.buildMenu();
         }
@@ -47,7 +43,29 @@ public final class HumanCommandParser {
             return directBuild;
         }
 
-        return HumanCommand.invalid("Unknown command. Use r, b, ls, Enter(go), or a.");
+        return HumanCommand.invalid("Unknown command. Use b, ls, or Enter(go).");
+    }
+
+    public ActionType parseBuildActionType(String rawInput) {
+        if (rawInput == null) {
+            return null;
+        }
+
+        String token = rawInput.trim().toLowerCase();
+        if (token.isEmpty()) {
+            return null;
+        }
+
+        if (token.equals("s") || token.equals("settlement")) {
+            return ActionType.BUILD_SETTLEMENT;
+        }
+        if (token.equals("c") || token.equals("city")) {
+            return ActionType.BUILD_CITY;
+        }
+        if (token.equals("r") || token.equals("road")) {
+            return ActionType.BUILD_ROAD;
+        }
+        return null;
     }
 
     private static HumanCommand parseBuildCommand(String input) {

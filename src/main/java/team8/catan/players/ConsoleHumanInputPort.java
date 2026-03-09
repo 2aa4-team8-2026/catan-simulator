@@ -4,7 +4,7 @@ import java.io.PrintStream;
 import java.util.Objects;
 import java.util.Scanner;
 
-public final class ConsoleHumanInputPort implements HumanInputPort {
+public class ConsoleHumanInputPort implements HumanInputPort {
     private final Scanner scanner;
     private final PrintStream out;
 

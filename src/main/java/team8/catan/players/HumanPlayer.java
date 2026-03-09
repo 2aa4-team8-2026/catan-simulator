@@ -1,7 +1,6 @@
 package team8.catan.players;
 
 import team8.catan.actions.Action;
-import team8.catan.actions.ActionTarget;
 import team8.catan.actions.ActionType;
 import team8.catan.board.Board;
 import team8.catan.board.Edge;
@@ -12,108 +11,40 @@ import team8.catan.rules.RuleChecker;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class HumanPlayer extends Player {
+public class HumanPlayer extends Player {
     private final HumanInputPort inputPort;
     private final HumanCommandParser commandParser;
-    private boolean rolledThisTurn;
 
     public HumanPlayer(int id, PlayerColor color, HumanInputPort inputPort, HumanCommandParser commandParser) {
         super(id, color);
         this.inputPort = inputPort;
         this.commandParser = commandParser;
-        this.rolledThisTurn = false;
-    }
-
-    public void beginTurn() {
-        rolledThisTurn = false;
-    }
-
-    public void awaitRollCommand() {
-        inputPort.printLine("P" + getId() + " roll stage: use r=roll, ls=list cards.");
-        while (!rolledThisTurn) {
-            HumanCommand command = commandParser.parse(inputPort.readLine("P" + getId() + " roll> "));
-            switch (command.getType()) {
-                case ROLL:
-                    rolledThisTurn = true;
-                    break;
-                case LIST:
-                    inputPort.printLine(resourceSummary());
-                    break;
-                case SHOW_ACTIONS:
-                    inputPort.printLine("Roll stage actions: r=roll, ls=list cards.");
-                    break;
-                case INVALID:
-                    inputPort.printLine(command.getError());
-                    break;
-                default:
-                    inputPort.printLine("You must roll first. Use r.");
-                    break;
-            }
-        }
     }
 
     @Override
     public Action chooseAction(Board board, RuleChecker ruleChecker, GamePhase phase) {
-        printPossibleActions(board, ruleChecker, phase);
         while (true) {
+            printPossibleActions(board, ruleChecker, phase);
             HumanCommand command = commandParser.parse(
-                inputPort.readLine("P" + getId() + " action [b/ls/a/Enter=go]: ")
+                inputPort.readLine(buildPrompt(phase))
             );
-            switch (command.getType()) {
-                case LIST:
-                    inputPort.printLine(resourceSummary());
-                    continue;
-                case SHOW_ACTIONS:
-                    printPossibleActions(board, ruleChecker, phase);
-                    continue;
-                case GO:
-                    return new Action(ActionType.PASS, ActionTarget.NO_TARGET_ID);
-                case ROLL:
-                    inputPort.printLine("Roll is handled before this step. Use b, ls, a, or Enter.");
-                    continue;
-                case BUILD_MENU: {
-                    Action buildAction = promptForBuildAction(board, ruleChecker, phase);
-                    if (buildAction != null) {
-                        return buildAction;
-                    }
-                    continue;
-                }
-                case BUILD_SETTLEMENT:
-                case BUILD_CITY:
-                case BUILD_ROAD: {
-                    Action action = actionFromBuildCommand(command, board);
-                    if (action == null) {
-                        continue;
-                    }
-                    if (!isBuildTypeAllowedInPhase(action.getActionType(), phase)) {
-                        inputPort.printLine("That build type is not available in this phase.");
-                        continue;
-                    }
-                    if (!ruleChecker.isLegal(action, board, this, phase)) {
-                        inputPort.printLine("That build is not legal right now.");
-                        printPossibleTargetsForActionType(board, ruleChecker, phase, action.getActionType());
-                        continue;
-                    }
-                    return action;
-                }
-                case INVALID:
-                    inputPort.printLine(command.getError());
-                    continue;
-                default:
-                    inputPort.printLine("Unsupported command.");
-                    continue;
+            Action action = command.executeAction(this, board, ruleChecker, phase);
+            if (action != null) {
+                return action;
             }
         }
     }
 
-    private Action promptForBuildAction(Board board, RuleChecker ruleChecker, GamePhase phase) {
+    Action promptForBuildAction(Board board, RuleChecker ruleChecker, GamePhase phase) {
         ActionType type = chooseBuildType(phase);
         if (type == null) {
             return null;
         }
 
+        printPossibleTargetsForActionType(board, ruleChecker, phase, type);
+
         while (true) {
-            Action candidate = readBuildTarget(type, board);
+            Action candidate = readBuildTarget(type, board, phase);
             if (candidate == null) {
                 return null;
             }
@@ -122,7 +53,7 @@ public final class HumanPlayer extends Player {
                 return candidate;
             }
 
-            inputPort.printLine("Invalid target for " + describeBuildType(type) + ". Check legal targets and try again.");
+            printLine("Invalid target for " + describeBuildType(type) + ". Check legal targets and try again.");
             printPossibleTargetsForActionType(board, ruleChecker, phase, type);
         }
     }
@@ -137,35 +68,26 @@ public final class HumanPlayer extends Player {
 
         while (true) {
             String input = inputPort.readLine("Build type [s=settlement, c=city, r=road, Enter=cancel]: ");
-            if (input == null) {
+            ActionType parsed = commandParser.parseBuildActionType(input);
+            if (parsed != null) {
+                return parsed;
+            }
+            if (input == null || input.trim().isEmpty()) {
                 return null;
             }
-            String token = input.trim().toLowerCase();
-            if (token.isEmpty()) {
-                return null;
-            }
-            switch (token) {
-                case "s":
-                case "settlement":
-                    return ActionType.BUILD_SETTLEMENT;
-                case "c":
-                case "city":
-                    return ActionType.BUILD_CITY;
-                case "r":
-                case "road":
-                    return ActionType.BUILD_ROAD;
-                default:
-                    inputPort.printLine("Unknown build type. Use s, c, or r.");
-                    break;
-            }
+            inputPort.printLine("Unknown build type. Use s, c, or r.");
         }
     }
 
-    private Action readBuildTarget(ActionType type, Board board) {
+    private Action readBuildTarget(ActionType type, Board board, GamePhase phase) {
         if (type == ActionType.BUILD_ROAD) {
             while (true) {
-                String raw = inputPort.readLine("Road endpoints [from,to] or [from to] (Enter=cancel): ");
+                String raw = inputPort.readLine(roadPrompt(phase));
                 if (raw == null || raw.trim().isEmpty()) {
+                    if (isMandatorySetupPhase(phase)) {
+                        inputPort.printLine("Setup road placement is mandatory. Enter legal road endpoints.");
+                        continue;
+                    }
                     return null;
                 }
 
@@ -184,8 +106,12 @@ public final class HumanPlayer extends Player {
         }
 
         while (true) {
-            String raw = inputPort.readLine(describeBuildType(type) + " node id (Enter=cancel): ");
+            String raw = inputPort.readLine(nodePrompt(type, phase));
             if (raw == null || raw.trim().isEmpty()) {
+                if (isMandatorySetupPhase(phase)) {
+                    inputPort.printLine("Setup " + describeBuildType(type).toLowerCase() + " placement is mandatory.");
+                    continue;
+                }
                 return null;
             }
             try {
@@ -196,28 +122,28 @@ public final class HumanPlayer extends Player {
         }
     }
 
-    private Action actionFromBuildCommand(HumanCommand command, Board board) {
+    Action actionFromBuildCommand(HumanCommand command, Board board) {
         switch (command.getType()) {
             case BUILD_SETTLEMENT:
                 if (command.getNodeId() == null) {
-                    inputPort.printLine("Settlement command missing node id.");
+                    printLine("Settlement command missing node id.");
                     return null;
                 }
                 return new Action(ActionType.BUILD_SETTLEMENT, command.getNodeId());
             case BUILD_CITY:
                 if (command.getNodeId() == null) {
-                    inputPort.printLine("City command missing node id.");
+                    printLine("City command missing node id.");
                     return null;
                 }
                 return new Action(ActionType.BUILD_CITY, command.getNodeId());
             case BUILD_ROAD:
                 if (command.getFromNodeId() == null || command.getToNodeId() == null) {
-                    inputPort.printLine("Road command missing node ids.");
+                    printLine("Road command missing node ids.");
                     return null;
                 }
                 int edgeId = board.getEdgeIdBetweenNodes(command.getFromNodeId(), command.getToNodeId());
                 if (edgeId < 0) {
-                    inputPort.printLine(
+                    printLine(
                         "No edge exists between nodes " + command.getFromNodeId() + " and " + command.getToNodeId() + "."
                     );
                     return null;
@@ -252,44 +178,26 @@ public final class HumanPlayer extends Player {
         }
     }
 
-    private void printPossibleActions(Board board, RuleChecker ruleChecker, GamePhase phase) {
+    void printPossibleActions(Board board, RuleChecker ruleChecker, GamePhase phase) {
         List<Action> legalActions = ruleChecker.getLegalActions(board, this, phase);
-        List<Integer> settlementNodes = new ArrayList<>();
-        List<Integer> cityNodes = new ArrayList<>();
-        List<String> roadPairs = new ArrayList<>();
-
+        if (isMandatorySetupPhase(phase)) {
+            printLine("Possible actions now: ls=list, b=build.");
+        } else {
+            printLine("Possible actions now: Enter=pass, ls=list, b=build.");
+        }
+        boolean hasBuildAction = false;
         for (Action action : legalActions) {
-            if (!isBuildTypeAllowedInPhase(action.getActionType(), phase)) {
-                continue;
-            }
-            if (action.getActionType() == ActionType.BUILD_SETTLEMENT) {
-                settlementNodes.add(action.getTargetId());
-            } else if (action.getActionType() == ActionType.BUILD_CITY) {
-                cityNodes.add(action.getTargetId());
-            } else if (action.getActionType() == ActionType.BUILD_ROAD) {
-                Edge edge = board.getEdge(action.getTargetId());
-                if (edge != null) {
-                    roadPairs.add(edge.getNodeA() + "-" + edge.getNodeB());
-                }
+            if (isBuildTypeAllowedInPhase(action.getActionType(), phase)) {
+                hasBuildAction = true;
+                break;
             }
         }
-
-        inputPort.printLine("Possible actions now: Enter=pass, ls=list, a=show actions, b=build.");
-        if (!settlementNodes.isEmpty()) {
-            inputPort.printLine("Settlement nodes: " + summarizeList(settlementNodes));
-        }
-        if (!cityNodes.isEmpty()) {
-            inputPort.printLine("City nodes: " + summarizeList(cityNodes));
-        }
-        if (!roadPairs.isEmpty()) {
-            inputPort.printLine("Road endpoints: " + summarizeList(roadPairs));
-        }
-        if (settlementNodes.isEmpty() && cityNodes.isEmpty() && roadPairs.isEmpty()) {
-            inputPort.printLine("No legal build actions available.");
+        if (!hasBuildAction) {
+            printLine("No legal build actions available.");
         }
     }
 
-    private void printPossibleTargetsForActionType(
+    void printPossibleTargetsForActionType(
         Board board,
         RuleChecker ruleChecker,
         GamePhase phase,
@@ -312,9 +220,9 @@ public final class HumanPlayer extends Player {
                 }
             }
             if (roadPairs.isEmpty()) {
-                inputPort.printLine("No legal road targets available.");
+                printLine("No legal road targets available.");
             } else {
-                inputPort.printLine("Road endpoints: " + summarizeList(roadPairs));
+                printLine("Road endpoints: " + summarizeList(roadPairs));
             }
             return;
         }
@@ -327,11 +235,11 @@ public final class HumanPlayer extends Player {
         }
 
         if (nodeTargets.isEmpty()) {
-            inputPort.printLine("No legal " + describeBuildType(actionType).toLowerCase() + " targets available.");
+            printLine("No legal " + describeBuildType(actionType).toLowerCase() + " targets available.");
             return;
         }
 
-        inputPort.printLine(describeBuildType(actionType) + " nodes: " + summarizeList(nodeTargets));
+        printLine(describeBuildType(actionType) + " nodes: " + summarizeList(nodeTargets));
     }
 
     private static String summarizeList(List<?> values) {
@@ -349,7 +257,7 @@ public final class HumanPlayer extends Player {
         return sb.toString();
     }
 
-    private static boolean isBuildTypeAllowedInPhase(ActionType type, GamePhase phase) {
+    static boolean isBuildTypeAllowedInPhase(ActionType type, GamePhase phase) {
         if (phase == GamePhase.SETUP_SETTLEMENT) {
             return type == ActionType.BUILD_SETTLEMENT;
         }
@@ -359,6 +267,31 @@ public final class HumanPlayer extends Player {
         return type == ActionType.BUILD_SETTLEMENT
             || type == ActionType.BUILD_CITY
             || type == ActionType.BUILD_ROAD;
+    }
+
+    static boolean isMandatorySetupPhase(GamePhase phase) {
+        return phase == GamePhase.SETUP_SETTLEMENT || phase == GamePhase.SETUP_ROAD;
+    }
+
+    private String buildPrompt(GamePhase phase) {
+        if (isMandatorySetupPhase(phase)) {
+            return "P" + getId() + " action [b/ls]: ";
+        }
+        return "P" + getId() + " action [b/ls/Enter=go]: ";
+    }
+
+    private String roadPrompt(GamePhase phase) {
+        if (isMandatorySetupPhase(phase)) {
+            return "Road endpoints [from,to] or [from to]: ";
+        }
+        return "Road endpoints [from,to] or [from to] (Enter=cancel): ";
+    }
+
+    private String nodePrompt(ActionType type, GamePhase phase) {
+        if (isMandatorySetupPhase(phase)) {
+            return describeBuildType(type) + " node id: ";
+        }
+        return describeBuildType(type) + " node id (Enter=cancel): ";
     }
 
     private static String describeBuildType(ActionType type) {
@@ -382,9 +315,17 @@ public final class HumanPlayer extends Player {
             }
             sb.append(type.name())
                 .append("=")
-                .append(getResourceHand().getCount(type));
+                .append(getResourceCount(type));
         }
-        sb.append(" (total=").append(getResourceHand().totalCards()).append(")");
+        sb.append(" (total=").append(getTotalResourceCards()).append(")");
         return sb.toString();
+    }
+
+    void printResourceSummary() {
+        printLine(resourceSummary());
+    }
+
+    void printLine(String message) {
+        inputPort.printLine(message);
     }
 }

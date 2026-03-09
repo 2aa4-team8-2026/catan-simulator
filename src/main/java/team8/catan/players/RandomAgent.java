@@ -29,7 +29,7 @@ public class RandomAgent extends Player {
             return new Action(ActionType.PASS, ActionTarget.NO_TARGET_ID);
         }
 
-        if (getResourceHand().totalCards() > 7) {
+        if (getTotalResourceCards() > 7) {
             List<Action> buildActions = legalActions.stream()
                 .filter(action -> action.getActionType() != ActionType.PASS)
                 .toList();

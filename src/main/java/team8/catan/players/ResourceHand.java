@@ -8,7 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
 
-public class ResourceHand {
+final class ResourceHand {
     private final Map<ResourceType, Integer> counts;
 
     public ResourceHand() {
@@ -25,7 +25,7 @@ public class ResourceHand {
         }
         return total;
     }
-
+    
     public boolean canAfford(ActionType actionType) {
         for (Map.Entry<ResourceType, Integer> cost : actionType.getCost().entrySet()) {
             int available = counts.getOrDefault(cost.getKey(), 0);
