@@ -5,7 +5,7 @@ import team8.catan.players.Player;
 
 import java.util.Objects;
 
-public final class ConsoleStepForwardGate implements StepForwardGate {
+public class ConsoleStepForwardGate implements StepForwardGate {
     private final HumanInputPort inputPort;
 
     public ConsoleStepForwardGate(HumanInputPort inputPort) {

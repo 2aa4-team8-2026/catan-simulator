@@ -5,14 +5,14 @@ import team8.catan.board.Board;
 import team8.catan.board.Node;
 import team8.catan.board.ResourceType;
 import team8.catan.board.StructureType;
-import team8.catan.output.ActionLogger;
-import team8.catan.output.ConsoleActionLogger;
-import team8.catan.output.GameStateWriter;
 import team8.catan.players.Player;
-import team8.catan.players.HumanPlayer;
 import team8.catan.rules.RuleChecker;
 import team8.catan.dice.Dice;
 import team8.catan.dice.TwoDice;
+import team8.catan.logging.ActionLogger;
+import team8.catan.logging.ConsoleActionLogger;
+import team8.catan.logging.GameStateWriter;
+import team8.catan.logging.RoadPlacement;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -31,6 +31,7 @@ public class Game {
     private final ActionLogger actionLogger;
     private final StepForwardGate stepForwardGate;
     private final GameStateWriter stateWriter;
+    private final List<RoadPlacement> roadPlacementOrder;
 
     private int round;
     private GamePhase phase;
@@ -45,7 +46,7 @@ public class Game {
             new TwoDice(),
             new ConsoleActionLogger(),
             new NoOpStepForwardGate(),
-            (ignoredBoard, ignoredPlayers) -> { }
+            (ignoredBoard, ignoredPlayers, ignoredRoadOrder) -> { }
         );
     }
 
@@ -66,7 +67,7 @@ public class Game {
             dice,
             new ConsoleActionLogger(),
             new NoOpStepForwardGate(),
-            (ignoredBoard, ignoredPlayers) -> { }
+            (ignoredBoard, ignoredPlayers, ignoredRoadOrder) -> { }
         );
     }
 
@@ -91,6 +92,7 @@ public class Game {
         this.actionLogger = Objects.requireNonNull(actionLogger, "actionLogger");
         this.stepForwardGate = Objects.requireNonNull(stepForwardGate, "stepForwardGate");
         this.stateWriter = Objects.requireNonNull(stateWriter, "stateWriter");
+        this.roadPlacementOrder = new ArrayList<>();
         this.round = 0;
         this.phase = GamePhase.SETUP_SETTLEMENT;
     }
@@ -152,13 +154,13 @@ public class Game {
         if (chosenAction != null && chosenAction.getActionType() == requiredType) {
             boolean applied = executeAction(player, chosenAction, false);
             actionLogger.logAction(0, player, chosenAction, applied);
-            stateWriter.write(board, players);
+            stateWriter.write(board, players, roadPlacementOrder);
             if (!applied) {
                 Action fallback = firstLegalAction(player, requiredType);
                 if (fallback != null && !fallback.equals(chosenAction)) {
                     boolean fallbackApplied = executeAction(player, fallback, false);
                     actionLogger.logAction(0, player, fallback, fallbackApplied);
-                    stateWriter.write(board, players);
+                    stateWriter.write(board, players, roadPlacementOrder);
                 }
             }
         }
@@ -175,11 +177,6 @@ public class Game {
     }
 
     private void executeTurn(Player player) {
-        if (player instanceof HumanPlayer humanPlayer) {
-            humanPlayer.beginTurn();
-            humanPlayer.awaitRollCommand();
-        }
-
         int diceRoll = rollDice();
 
         ruleChecker.onDiceRolled(diceRoll, player, board, players, phase);
@@ -196,7 +193,7 @@ public class Game {
 
         boolean applied = executeAction(player, action, true);
         actionLogger.logAction(round, player, action, applied);
-        stateWriter.write(board, players);
+        stateWriter.write(board, players, roadPlacementOrder);
     }
 
     private int rollDice() {
@@ -221,7 +218,7 @@ public class Game {
             }
 
             int amount = node.getStructureType() == StructureType.CITY ? 2 : 1;
-            owner.getResourceHand().add(producedType, amount);
+            owner.grantResource(producedType, amount);
         }
     }
 
@@ -230,7 +227,11 @@ public class Game {
         if (executor == null) {
             throw new IllegalStateException("No executor registered for action type: " + action.getActionType());
         }
-        return executor.execute(board, player, action, chargeCost);
+        boolean applied = executor.execute(board, player, action, chargeCost);
+        if (applied && action.getActionType() == ActionType.BUILD_ROAD) {
+            roadPlacementOrder.add(new RoadPlacement(action.getTargetId(), player.getId()));
+        }
+        return applied;
     }
 
     private Map<ActionType, ActionExecutor> buildExecutors() {

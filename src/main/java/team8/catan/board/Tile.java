@@ -2,7 +2,7 @@ package team8.catan.board;
 
 import java.util.Arrays;
 
-public final class Tile {
+public class Tile {
     private final int id;
     private final int q;
     private final int s;
