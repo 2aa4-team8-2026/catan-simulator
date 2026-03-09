@@ -7,7 +7,7 @@ import team8.catan.players.Player;
 import java.util.List;
 import java.util.Objects;
 
-public final class RobberRuleModule implements RuleModule {
+public class RobberRuleModule implements RuleModule {
     private final RobberService robberService;
 
     public RobberRuleModule() {

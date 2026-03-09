@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
-public final class RobberService {
+public class RobberService {
     private final Random random;
 
     public RobberService() {
@@ -37,7 +37,7 @@ public final class RobberService {
             if (!board.hasStructureAdjacentToTile(robberTileId, player.getId())) {
                 continue;
             }
-            if (player.getResourceHand().totalCards() <= 0) {
+            if (player.getTotalResourceCards() <= 0) {
                 continue;
             }
             victims.add(player);
@@ -48,20 +48,20 @@ public final class RobberService {
         }
 
         Player victim = victims.get(random.nextInt(victims.size()));
-        ResourceType stolen = victim.getResourceHand().removeRandomCard(random);
+        ResourceType stolen = victim.removeRandomResource(random);
         if (stolen != null) {
-            roller.getResourceHand().add(stolen, 1);
+            roller.grantResource(stolen, 1);
         }
     }
 
     private void discardHalfFromLargeHands(List<? extends Player> players) {
         for (Player player : players) {
-            int total = player.getResourceHand().totalCards();
+            int total = player.getTotalResourceCards();
             if (total <= 7) {
                 continue;
             }
             int toDiscard = total / 2;
-            player.getResourceHand().discardRandomCards(toDiscard, random);
+            player.discardRandomResources(toDiscard, random);
         }
     }
 }
