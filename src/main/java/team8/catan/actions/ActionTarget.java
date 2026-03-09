@@ -2,7 +2,7 @@ package team8.catan.actions;
 
 import java.util.Objects;
 
-public final class ActionTarget {
+public class ActionTarget {
     public static final int NO_TARGET_ID = -1;
 
     private final TargetKind kind;

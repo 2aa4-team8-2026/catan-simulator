@@ -4,7 +4,7 @@ import team8.catan.board.Board;
 import team8.catan.board.Node;
 import team8.catan.players.Player;
 
-public final class BuildSettlementExecutor implements ActionExecutor {
+public class BuildSettlementExecutor implements ActionExecutor {
     @Override
     public ActionType supportedType() {
         return ActionType.BUILD_SETTLEMENT;

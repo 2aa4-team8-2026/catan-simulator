@@ -1,6 +1,5 @@
 package team8.catan.actions;
 
-import team8.catan.board.Board;
 import team8.catan.board.ResourceType;
 import team8.catan.board.StructureType;
 
@@ -11,11 +10,6 @@ public enum ActionType {
         @Override
         public Map<ResourceType, Integer> getCost() {
             return StructureType.ROAD.cost();
-        }
-
-        @Override
-        public int[] getValidTargets(Board board, int playerId) {
-            return board.getValidRoadTargets(playerId);
         }
 
         @Override
@@ -30,11 +24,6 @@ public enum ActionType {
         }
 
         @Override
-        public int[] getValidTargets(Board board, int playerId) {
-            return board.getValidSettlementTargets(playerId);
-        }
-
-        @Override
         public String describe(int targetId) {
             return "build a settlement on node " + targetId;
         }
@@ -46,11 +35,6 @@ public enum ActionType {
         }
 
         @Override
-        public int[] getValidTargets(Board board, int playerId) {
-            return board.getValidCityTargets(playerId);
-        }
-
-        @Override
         public String describe(int targetId) {
             return "build a city on node " + targetId;
         }
@@ -59,11 +43,6 @@ public enum ActionType {
         @Override
         public Map<ResourceType, Integer> getCost() {
             return Map.of();
-        }
-
-        @Override
-        public int[] getValidTargets(Board board, int playerId) {
-            return new int[] { ActionTarget.NO_TARGET_ID };
         }
 
         @Override
@@ -89,8 +68,6 @@ public enum ActionType {
     }
 
     public abstract Map<ResourceType, Integer> getCost();
-
-    public abstract int[] getValidTargets(Board board, int playerId);
 
     public abstract String describe(int targetId);
 }

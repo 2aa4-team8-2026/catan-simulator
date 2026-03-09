@@ -1,7 +1,7 @@
 package team8.catan.configuration;
 
 // todo: add javadoc
-public final class GameConfig {
+public class GameConfig {
     private static final int MAX_ALLOWED_ROUNDS = 8192;
     private static final String DEFAULT_BASE_MAP_PATH = "base_map.json";
     private static final String DEFAULT_STATE_PATH = "state.json";

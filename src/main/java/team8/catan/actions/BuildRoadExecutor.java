@@ -4,7 +4,7 @@ import team8.catan.board.Board;
 import team8.catan.board.Edge;
 import team8.catan.players.Player;
 
-public final class BuildRoadExecutor implements ActionExecutor {
+public class BuildRoadExecutor implements ActionExecutor {
     @Override
     public ActionType supportedType() {
         return ActionType.BUILD_ROAD;

@@ -1,76 +1,29 @@
 package team8.catan.configuration;
 
+import team8.catan.io.JsonParser;
+import team8.catan.io.TextResourceLoader;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Map;
 
 // todo: add javadoc
-public final class JsonLoader extends GameConfigLoader {
-    private static final Pattern INTEGER_FIELD_PATTERN =
-        Pattern.compile("\"([^\"]+)\"\\s*:\\s*(-?\\d+)");
-    private static final Pattern STRING_FIELD_PATTERN =
-        Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"([^\"]*)\"");
-
+public class JsonLoader extends GameConfigLoader {
     @Override
     public GameConfig load(Path path) throws IOException {
-        String json = loadJson(path);
+        String json = TextResourceLoader.load(path, path.toString(), JsonLoader.class);
+        Map<String, Object> root = JsonParser.parseObject(json);
 
-        Integer numPlayers = null;
-        Integer maxRounds = null;
-        Integer victoryPointsToWin = null;
-        Integer startingResourcesPerType = null;
-        Integer humanPlayerIndex = null;
-        String baseMapPath = null;
-        String statePath = null;
-
-        Matcher matcher = INTEGER_FIELD_PATTERN.matcher(json);
-        while (matcher.find()) {
-            String fieldName = matcher.group(1);
-            int value = Integer.parseInt(matcher.group(2));
-
-            switch (fieldName) {
-                case "numPlayers":
-                    numPlayers = value;
-                    break;
-                case "turns":
-                case "maxRounds":
-                    maxRounds = value;
-                    break;
-                case "victoryPointsToWin":
-                    victoryPointsToWin = value;
-                    break;
-                case "startingResourcesPerType":
-                    startingResourcesPerType = value;
-                    break;
-                case "humanPlayerIndex":
-                    humanPlayerIndex = value;
-                    break;
-                default:
-                    // Ignore unrelated config keys.
-                    break;
-            }
+        Integer numPlayers = readRequiredInt(root, "numPlayers");
+        Integer maxRounds = readOptionalInt(root, "maxRounds");
+        if (maxRounds == null) {
+            maxRounds = readRequiredInt(root, "turns");
         }
-
-        Matcher stringMatcher = STRING_FIELD_PATTERN.matcher(json);
-        while (stringMatcher.find()) {
-            String fieldName = stringMatcher.group(1);
-            String value = stringMatcher.group(2);
-            switch (fieldName) {
-                case "baseMapPath":
-                    baseMapPath = value;
-                    break;
-                case "statePath":
-                    statePath = value;
-                    break;
-                default:
-                    // Ignore unrelated config keys.
-                    break;
-            }
-        }
+        Integer victoryPointsToWin = readRequiredInt(root, "victoryPointsToWin");
+        Integer startingResourcesPerType = readRequiredInt(root, "startingResourcesPerType");
+        Integer humanPlayerIndex = readOptionalInt(root, "humanPlayerIndex");
+        String baseMapPath = readOptionalString(root, "baseMapPath");
+        String statePath = readOptionalString(root, "statePath");
 
         validateRequiredField("numPlayers", numPlayers);
         validateRequiredField("turns/maxRounds", maxRounds);
@@ -88,20 +41,45 @@ public final class JsonLoader extends GameConfigLoader {
         );
     }
 
-    private static String loadJson(Path path) throws IOException {
-        if (Files.exists(path)) {
-            return Files.readString(path);
+    private static Integer readRequiredInt(Map<String, Object> root, String key) {
+        Object value = root.get(key);
+        if (value == null) {
+            return null;
         }
+        return toInt(key, value);
+    }
 
-        String resourcePath = path.toString().replace('\\', '/');
-        InputStream resource = JsonLoader.class.getClassLoader().getResourceAsStream(resourcePath);
-        if (resource == null) {
-            throw new java.nio.file.NoSuchFileException(path.toString());
+    private static Integer readOptionalInt(Map<String, Object> root, String key) {
+        Object value = root.get(key);
+        if (value == null) {
+            return null;
         }
+        return toInt(key, value);
+    }
 
-        try (InputStream in = resource) {
-            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+    private static String readOptionalString(Map<String, Object> root, String key) {
+        Object value = root.get(key);
+        if (value == null) {
+            return null;
         }
+        if (!(value instanceof String stringValue)) {
+            throw new IllegalArgumentException("Expected string config field: " + key);
+        }
+        return stringValue;
+    }
+
+    private static Integer toInt(String key, Object value) {
+        if (!(value instanceof Number numberValue)) {
+            throw new IllegalArgumentException("Expected integer config field: " + key);
+        }
+        long asLong = numberValue.longValue();
+        if (asLong < Integer.MIN_VALUE || asLong > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Config field out of integer range: " + key);
+        }
+        if (numberValue.doubleValue() != (double) asLong) {
+            throw new IllegalArgumentException("Expected integer config field: " + key);
+        }
+        return (int) asLong;
     }
 
     private static void validateRequiredField(String fieldName, Integer value) {
