@@ -4,11 +4,12 @@ import team8.catan.actions.Action;
 import team8.catan.board.Board;
 import team8.catan.gameplay.GamePhase;
 import team8.catan.players.Player;
+import team8.catan.players.PlayerColor;
 import team8.catan.rules.RuleChecker;
 
 public final class TestPlayer extends Player {
     public TestPlayer(int id) {
-        super(id);
+        super(id, PlayerColor.values()[id % PlayerColor.values().length]);
     }
 
     @Override
