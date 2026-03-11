@@ -7,7 +7,8 @@ import org.junit.platform.suite.api.Suite;
 @SelectClasses({
     ConfigurationAndResourcesSuite.class,
     BoardAndRulesSuite.class,
-    ActionExecutorsSuite.class
+    ActionExecutorsSuite.class,
+    GameplaySuite.class
 })
 public class AllTestsSuite {
 }

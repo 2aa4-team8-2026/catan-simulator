@@ -14,6 +14,26 @@ public class JsonLoaderTest {
     Path tempDir;
 
     @Test
+    void JsonLoader_partitionTest_readsCanonicalMaxRoundsField() throws IOException {
+        Path configFile = tempDir.resolve("canonical-game-config.json");
+        Files.writeString(configFile, """
+            {
+              "numPlayers": 3,
+              "maxRounds": 40,
+              "victoryPointsToWin": 9,
+              "startingResourcesPerType": 2
+            }
+            """);
+
+        GameConfig config = new JsonLoader().load(configFile);
+
+        assertEquals(3, config.getNumPlayers());
+        assertEquals(40, config.getMaxRounds());
+        assertEquals(9, config.getVictoryPointsToWin());
+        assertEquals(2, config.getStartingResourcesPerType());
+    }
+
+    @Test
     void JsonLoader_readsTurnsAliasIntoMaxRounds() throws IOException {
         Path configFile = tempDir.resolve("game-config.json");
         Files.writeString(configFile, """
