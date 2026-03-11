@@ -48,14 +48,4 @@ public class GameFactoryTest {
             throw new UnsupportedOperationException("Not used in this test");
         }
     }
-
-    private static final class NoOpActionLogger implements ActionLogger {
-        @Override
-        public void logAction(int round, Player player, team8.catan.actions.Action action, boolean applied) {
-        }
-
-        @Override
-        public void logRoundVictoryPoints(int round, List<Player> players) {
-        }
-    }
 }

@@ -6,7 +6,6 @@ import team8.catan.actions.ActionType;
 import team8.catan.board.Board;
 import team8.catan.board.Edge;
 import team8.catan.board.Node;
-import team8.catan.board.ResourceType;
 import team8.catan.logging.ActionLogger;
 import team8.catan.logging.GameStateWriter;
 import team8.catan.players.Player;
@@ -114,12 +113,6 @@ public class GameTest {
         @Override
         public void logRoundVictoryPoints(int round, List<Player> players) {
             roundLogs++;
-        }
-    }
-
-    private static final class NoOpStateWriter implements GameStateWriter {
-        @Override
-        public void write(Board board, List<Player> players, List<team8.catan.logging.RoadPlacement> roadOrder) {
         }
     }
 
