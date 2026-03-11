@@ -7,7 +7,17 @@ import team8.catan.board.Edge;
 import team8.catan.gameplay.GamePhase;
 import team8.catan.players.Player;
 
-public final class RoadConnectionRuleModule implements RuleModule {
+public class RoadConnectionRuleModule implements RuleModule {
+    private final RoadNetworkService roadNetworkService;
+
+    public RoadConnectionRuleModule() {
+        this(new RoadNetworkService());
+    }
+
+    RoadConnectionRuleModule(RoadNetworkService roadNetworkService) {
+        this.roadNetworkService = roadNetworkService;
+    }
+
     @Override
     public boolean isLegal(Action action, Board board, Player player, GamePhase phase) {
         if (action.getActionType() != ActionType.BUILD_ROAD) {
@@ -19,6 +29,6 @@ public final class RoadConnectionRuleModule implements RuleModule {
             return false;
         }
 
-        return board.isRoadConnectedToPlayerNetwork(edge.getId(), player.getId());
+        return roadNetworkService.isRoadConnectedToPlayerNetwork(board, edge.getId(), player.getId());
     }
 }

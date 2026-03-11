@@ -1,24 +1,30 @@
 package team8.catan.configuration;
 
+import team8.catan.io.TextResourceLoader;
+
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 // todo: add javadoc
-public final class JsonLoader extends GameConfigLoader {
+public class JsonLoader extends GameConfigLoader {
     private static final Pattern INTEGER_FIELD_PATTERN =
         Pattern.compile("\"([^\"]+)\"\\s*:\\s*(-?\\d+)");
+    private static final Pattern STRING_FIELD_PATTERN =
+        Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"([^\"]*)\"");
 
     @Override
     public GameConfig load(Path path) throws IOException {
-        String json = Files.readString(path);
+        String json = TextResourceLoader.load(path, path.toString(), JsonLoader.class);
 
         Integer numPlayers = null;
         Integer maxRounds = null;
         Integer victoryPointsToWin = null;
         Integer startingResourcesPerType = null;
+        Integer humanPlayerIndex = null;
+        String baseMapPath = null;
+        String statePath = null;
 
         Matcher matcher = INTEGER_FIELD_PATTERN.matcher(json);
         while (matcher.find()) {
@@ -39,8 +45,26 @@ public final class JsonLoader extends GameConfigLoader {
                 case "startingResourcesPerType":
                     startingResourcesPerType = value;
                     break;
+                case "humanPlayerIndex":
+                    humanPlayerIndex = value;
+                    break;
                 default:
-                    // Ignore unrelated config keys.
+                    break;
+            }
+        }
+
+        Matcher stringMatcher = STRING_FIELD_PATTERN.matcher(json);
+        while (stringMatcher.find()) {
+            String fieldName = stringMatcher.group(1);
+            String value = stringMatcher.group(2);
+            switch (fieldName) {
+                case "baseMapPath":
+                    baseMapPath = value;
+                    break;
+                case "statePath":
+                    statePath = value;
+                    break;
+                default:
                     break;
             }
         }
@@ -54,7 +78,10 @@ public final class JsonLoader extends GameConfigLoader {
             numPlayers,
             maxRounds,
             victoryPointsToWin,
-            startingResourcesPerType
+            startingResourcesPerType,
+            humanPlayerIndex,
+            baseMapPath == null ? "base_map.json" : baseMapPath,
+            statePath == null ? "state.json" : statePath
         );
     }
 

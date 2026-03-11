@@ -12,6 +12,12 @@ public interface RuleModule {
         return true;
     }
 
-    default void onDiceRolled(int diceRoll, Board board, List<? extends Player> players, GamePhase phase) {
+    default void onDiceRolled(
+        int diceRoll,
+        Player roller,
+        Board board,
+        List<? extends Player> players,
+        GamePhase phase
+    ) {
     }
 }

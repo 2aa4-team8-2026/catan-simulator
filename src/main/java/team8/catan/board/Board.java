@@ -3,15 +3,24 @@ package team8.catan.board;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 public class Board {
     private final List<Node> nodes;
     private final List<Edge> edges;
+    private final List<Tile> tiles;
+    private int robberTileId;
 
     public Board(List<Node> nodes, List<Edge> edges) {
+        this(nodes, edges, List.of(), -1);
+    }
+
+    public Board(List<Node> nodes, List<Edge> edges, List<Tile> tiles, int robberTileId) {
         this.nodes = new ArrayList<>(nodes);
         this.edges = new ArrayList<>(edges);
+        this.tiles = new ArrayList<>(tiles);
+        this.robberTileId = robberTileId;
     }
 
     public Node getNode(int id) {
@@ -32,42 +41,70 @@ public class Board {
         return new ArrayList<>(nodes);
     }
 
-    public int[] getValidRoadTargets(int playerId) {
-        List<Integer> valid = new ArrayList<>();
+    public List<Edge> getEdges() {
+        return new ArrayList<>(edges);
+    }
+
+    public Tile getTile(int tileId) {
+        if (tileId < 0 || tileId >= tiles.size()) {
+            return null;
+        }
+        return tiles.get(tileId);
+    }
+
+    public List<Tile> getTiles() {
+        return new ArrayList<>(tiles);
+    }
+
+    public int getRobberTileId() {
+        return robberTileId;
+    }
+
+    public void placeRobber(int tileId) {
+        if (tileId < 0 || tileId >= tiles.size()) {
+            throw new IllegalArgumentException("Invalid tile id: " + tileId);
+        }
+        robberTileId = tileId;
+    }
+
+    public int getRandomTileId(Random random) {
+        if (tiles.isEmpty()) {
+            return -1;
+        }
+        return random.nextInt(tiles.size());
+    }
+
+    public int getEdgeIdBetweenNodes(int nodeA, int nodeB) {
         for (Edge edge : edges) {
-            if (edge.isUnowned() && isRoadConnectedToPlayerNetwork(edge.getId(), playerId)) {
-                valid.add(edge.getId());
+            boolean direct = edge.getNodeA() == nodeA && edge.getNodeB() == nodeB;
+            boolean reverse = edge.getNodeA() == nodeB && edge.getNodeB() == nodeA;
+            if (direct || reverse) {
+                return edge.getId();
             }
         }
-        return toIntArray(valid);
+        return -1;
     }
 
-    public int[] getValidSettlementTargets(int playerId) {
-        List<Integer> valid = new ArrayList<>();
-        for (Node node : nodes) {
-            if (node.isUnowned() && node.getStructureType() == null) {
-                valid.add(node.getId());
+    public int[] getAdjacentNodeIdsForTile(int tileId) {
+        Tile tile = getTile(tileId);
+        if (tile == null) {
+            return new int[0];
+        }
+        return tile.getAdjacentNodeIds();
+    }
+
+    public boolean hasStructureAdjacentToTile(int tileId, int playerId) {
+        int[] nodeIds = getAdjacentNodeIdsForTile(tileId);
+        for (int nodeId : nodeIds) {
+            Node node = getNode(nodeId);
+            if (node == null) {
+                continue;
+            }
+            if (node.getOwnerId() == playerId && node.getStructureType() != null) {
+                return true;
             }
         }
-        return toIntArray(valid);
-    }
-
-    public int[] getValidCityTargets(int playerId) {
-        List<Integer> valid = new ArrayList<>();
-        for (Node node : nodes) {
-            if (node.getOwnerId() == playerId && node.getStructureType() == StructureType.SETTLEMENT) {
-                valid.add(node.getId());
-            }
-        }
-        return toIntArray(valid);
-    }
-
-    private int[] toIntArray(List<Integer> values) {
-        int[] out = new int[values.size()];
-        for (int i = 0; i < values.size(); i++) {
-            out[i] = values.get(i);
-        }
-        return out;
+        return false;
     }
 
     public List<Integer> getIncidentEdgeIds(int nodeId) {
@@ -78,6 +115,19 @@ public class Board {
             }
         }
         return incident;
+    }
+
+    public List<Integer> getTileIdsAdjacentToNode(int nodeId) {
+        List<Integer> out = new ArrayList<>();
+        for (Tile tile : tiles) {
+            for (int adjacentNodeId : tile.getAdjacentNodeIds()) {
+                if (adjacentNodeId == nodeId) {
+                    out.add(tile.getId());
+                    break;
+                }
+            }
+        }
+        return out;
     }
 
     public List<Integer> getAdjacentNodeIds(int nodeId) {
@@ -109,51 +159,6 @@ public class Board {
                 return true;
             }
         }
-        return false;
-    }
-
-    public boolean isRoadConnectedToPlayerNetwork(int edgeId, int playerId) {
-        Edge edge = getEdge(edgeId);
-        if (edge == null) {
-            return false;
-        }
-        return isConnectedToPlayerNetwork(edge, playerId);
-    }
-
-    private boolean isConnectedToPlayerNetwork(Edge candidate, int playerId) {
-        return isConnectedAtNode(candidate, candidate.getNodeA(), playerId)
-            || isConnectedAtNode(candidate, candidate.getNodeB(), playerId);
-    }
-
-    private boolean isConnectedAtNode(Edge candidate, int nodeId, int playerId) {
-        Node node = getNode(nodeId);
-        if (node == null) {
-            return false;
-        }
-
-        // Direct connection to player's own settlement/city.
-        if (node.getOwnerId() == playerId && node.getStructureType() != null) {
-            return true;
-        }
-
-        // No road can pass through an opponent's structure.
-        if (node.getStructureType() != null && node.getOwnerId() != playerId) {
-            return false;
-        }
-
-        // Connected to any adjacent road owned by the player.
-        for (Edge edge : edges) {
-            if (edge == candidate) {
-                continue;
-            }
-            if (edge.getRoadOwnerId() != playerId) {
-                continue;
-            }
-            if (edge.getNodeA() == nodeId || edge.getNodeB() == nodeId) {
-                return true;
-            }
-        }
-
         return false;
     }
 }

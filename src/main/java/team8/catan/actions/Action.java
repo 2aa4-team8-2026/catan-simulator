@@ -2,7 +2,7 @@ package team8.catan.actions;
 
 import java.util.Objects;
 
-public final class Action {
+public class Action {
     private final ActionType actionType;
     private final ActionTarget target;
 

@@ -3,7 +3,7 @@ package team8.catan.actions;
 import team8.catan.board.Board;
 import team8.catan.players.Player;
 
-public final class PassExecutor implements ActionExecutor {
+public class PassExecutor implements ActionExecutor {
     @Override
     public ActionType supportedType() {
         return ActionType.PASS;

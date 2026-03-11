@@ -15,38 +15,29 @@ import java.util.Set;
 
 public class RuleChecker {
     private final List<RuleModule> modules;
+    private final ActionGenerationService actionGenerationService;
 
     public RuleChecker() {
-        this(List.of(
+        this(new ActionGenerationService(), List.of(
             new SettlementDistanceRuleModule(),
             new SettlementRoadConnectionRuleModule(),
             new CityRequiresSettlementRuleModule(),
-            new RoadConnectionRuleModule()
+            new RoadConnectionRuleModule(),
+            new RobberRuleModule()
         ));
     }
 
     public RuleChecker(List<RuleModule> modules) {
+        this(new ActionGenerationService(), modules);
+    }
+
+    public RuleChecker(ActionGenerationService actionGenerationService, List<RuleModule> modules) {
+        this.actionGenerationService = Objects.requireNonNull(actionGenerationService, "actionGenerationService");
         this.modules = new ArrayList<>(Objects.requireNonNull(modules, "modules"));
     }
 
     public List<Action> getLegalActions(Board board, Player player, GamePhase phase) {
-        List<Action> candidates = new ArrayList<>();
-
-        for (ActionType actionType : ActionType.values()) {
-            if (actionType.getFeature() != ActionFeature.CORE) {
-                continue;
-            }
-
-            if (actionType != ActionType.PASS && !isAffordableForPhase(actionType, player, phase)) {
-                continue;
-            }
-
-            int[] targets = actionType.getValidTargets(board, player.getId());
-            for (int targetId : targets) {
-                candidates.add(new Action(actionType, targetId));
-            }
-        }
-
+        List<Action> candidates = new ArrayList<>(actionGenerationService.generate(board, player, phase));
         Set<Action> deduplicated = new LinkedHashSet<>(candidates);
         List<Action> legal = new ArrayList<>();
         for (Action action : deduplicated) {
@@ -62,9 +53,15 @@ public class RuleChecker {
         return isLegalInternal(action, board, player, phase);
     }
 
-    public void onDiceRolled(int diceRoll, Board board, List<? extends Player> players, GamePhase phase) {
+    public void onDiceRolled(
+        int diceRoll,
+        Player roller,
+        Board board,
+        List<? extends Player> players,
+        GamePhase phase
+    ) {
         for (RuleModule module : modules) {
-            module.onDiceRolled(diceRoll, board, players, phase);
+            module.onDiceRolled(diceRoll, roller, board, players, phase);
         }
     }
 
@@ -78,7 +75,7 @@ public class RuleChecker {
         if (action.getActionType() != ActionType.PASS && !isAffordableForPhase(action.getActionType(), player, phase)) {
             return false;
         }
-        if (!isTargetValid(action, board, player.getId())) {
+        if (!isTargetValid(action, board, player, phase)) {
             return false;
         }
 
@@ -97,17 +94,10 @@ public class RuleChecker {
         if (phase == GamePhase.SETUP_ROAD && actionType == ActionType.BUILD_ROAD) {
             return true;
         }
-        return player.getResourceHand().canAfford(actionType);
+        return player.canAfford(actionType);
     }
 
-    private boolean isTargetValid(Action action, Board board, int playerId) {
-        int[] validTargets = action.getActionType().getValidTargets(board, playerId);
-        int targetId = action.getTargetId();
-        for (int validTarget : validTargets) {
-            if (validTarget == targetId) {
-                return true;
-            }
-        }
-        return false;
+    private boolean isTargetValid(Action action, Board board, Player player, GamePhase phase) {
+        return actionGenerationService.isCandidateTarget(action, board, player, phase);
     }
 }

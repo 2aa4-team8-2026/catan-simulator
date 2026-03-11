@@ -5,7 +5,7 @@ import team8.catan.board.Node;
 import team8.catan.board.StructureType;
 import team8.catan.players.Player;
 
-public final class BuildCityExecutor implements ActionExecutor {
+public class BuildCityExecutor implements ActionExecutor {
     @Override
     public ActionType supportedType() {
         return ActionType.BUILD_CITY;

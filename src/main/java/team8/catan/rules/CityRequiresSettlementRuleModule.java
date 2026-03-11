@@ -8,7 +8,7 @@ import team8.catan.board.StructureType;
 import team8.catan.gameplay.GamePhase;
 import team8.catan.players.Player;
 
-public final class CityRequiresSettlementRuleModule implements RuleModule {
+public class CityRequiresSettlementRuleModule implements RuleModule {
     @Override
     public boolean isLegal(Action action, Board board, Player player, GamePhase phase) {
         if (action.getActionType() != ActionType.BUILD_CITY) {
