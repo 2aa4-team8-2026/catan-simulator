@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import team8.catan.board.ResourceType;
 import team8.catan.configuration.GameConfig;
 import team8.catan.configuration.GameConfigLoader;
-import team8.catan.logging.ActionLogger;
 import team8.catan.players.Player;
 import team8.catan.rules.RuleChecker;
 
