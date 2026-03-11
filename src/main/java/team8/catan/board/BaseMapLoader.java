@@ -1,36 +1,31 @@
 package team8.catan.board;
 
-import team8.catan.io.JsonParser;
 import team8.catan.io.TextResourceLoader;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BaseMapLoader {
+    private static final Pattern TILE_PATTERN = Pattern.compile(
+        "\\{\\s*\"q\"\\s*:\\s*(-?\\d+)\\s*,\\s*\"s\"\\s*:\\s*(-?\\d+)\\s*,\\s*\"r\"\\s*:\\s*(-?\\d+)"
+            + "\\s*,\\s*\"resource\"\\s*:\\s*(null|\"[^\"]+\")\\s*,\\s*\"number\"\\s*:\\s*(null|-?\\d+)\\s*\\}"
+    );
+
     public List<BaseMapTileSpec> load(Path resolvedPath, String configuredPath) throws IOException {
         String json = TextResourceLoader.load(resolvedPath, configuredPath, BaseMapLoader.class);
-        Map<String, Object> root = JsonParser.parseObject(json);
-        Object tilesValue = root.get("tiles");
-        if (!(tilesValue instanceof List<?> tiles)) {
-            throw new IllegalArgumentException("Base map must contain a 'tiles' array");
-        }
-
-        List<BaseMapTileSpec> specs = new ArrayList<>(tiles.size());
-        for (Object tileValue : tiles) {
-            if (!(tileValue instanceof Map<?, ?> rawTileMap)) {
-                throw new IllegalArgumentException("Each tile entry must be an object");
-            }
-            @SuppressWarnings("unchecked")
-            Map<String, Object> tileMap = (Map<String, Object>) rawTileMap;
+        Matcher matcher = TILE_PATTERN.matcher(json);
+        List<BaseMapTileSpec> specs = new ArrayList<>();
+        while (matcher.find()) {
             specs.add(new BaseMapTileSpec(
-                readInt(tileMap, "q"),
-                readInt(tileMap, "s"),
-                readInt(tileMap, "r"),
-                parseResourceType(tileMap.get("resource")),
-                readNullableInt(tileMap, "number")
+                Integer.parseInt(matcher.group(1)),
+                Integer.parseInt(matcher.group(2)),
+                Integer.parseInt(matcher.group(3)),
+                parseResourceType(matcher.group(4)),
+                "null".equals(matcher.group(5)) ? null : Integer.parseInt(matcher.group(5))
             ));
         }
 
@@ -42,35 +37,11 @@ public class BaseMapLoader {
         return specs;
     }
 
-    private static int readInt(Map<String, Object> tileMap, String key) {
-        Object value = tileMap.get(key);
-        if (!(value instanceof Number numberValue)) {
-            throw new IllegalArgumentException("Tile field must be an integer: " + key);
-        }
-        long asLong = numberValue.longValue();
-        if (numberValue.doubleValue() != (double) asLong) {
-            throw new IllegalArgumentException("Tile field must be an integer: " + key);
-        }
-        return (int) asLong;
-    }
-
-    private static Integer readNullableInt(Map<String, Object> tileMap, String key) {
-        Object value = tileMap.get(key);
-        if (value == null) {
+    private static ResourceType parseResourceType(String rawValue) {
+        if ("null".equals(rawValue)) {
             return null;
         }
-        return readInt(tileMap, key);
-    }
-
-    private static ResourceType parseResourceType(Object rawValue) {
-        if (rawValue == null) {
-            return null;
-        }
-        if (!(rawValue instanceof String stringValue)) {
-            throw new IllegalArgumentException("Tile resource must be a string or null");
-        }
-
-        String value = stringValue.toUpperCase();
+        String value = rawValue.substring(1, rawValue.length() - 1).toUpperCase();
         return switch (value) {
             case "WOOD", "LUMBER" -> ResourceType.LUMBER;
             case "WHEAT", "GRAIN" -> ResourceType.GRAIN;
