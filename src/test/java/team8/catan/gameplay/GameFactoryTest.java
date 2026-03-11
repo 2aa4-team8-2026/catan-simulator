@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 public class GameFactoryTest {
     @Test
     void GameFactory_createGame_buildsConfiguredPlayersWithSeededResources() {
-        GameFactory factory = new GameFactory(new UnusedLoader(), new RuleChecker(List.of()), new NoOpActionLogger());
+        GameFactory factory = new GameFactory(new UnusedLoader(), new RuleChecker(List.of()));
         Game game = factory.createGame(new GameConfig(
             3,
             5,

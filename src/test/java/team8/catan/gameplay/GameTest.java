@@ -116,6 +116,13 @@ public class GameTest {
         }
     }
 
+    private static final class NoOpStateWriter implements GameStateWriter {
+        @Override
+        public void write(Board board, List<Player> players, List<team8.catan.logging.RoadPlacement> roadOrder) {
+            // no-op since it requires console input
+        }
+    }
+
     private static final class StubRuleChecker extends RuleChecker {
         @Override
         public List<Action> getLegalActions(Board board, Player player, GamePhase phase) {
