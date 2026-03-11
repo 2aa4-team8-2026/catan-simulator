@@ -7,8 +7,10 @@ import team8.catan.board.Board;
 import team8.catan.board.Edge;
 import team8.catan.board.Node;
 import team8.catan.board.ResourceType;
-import team8.catan.output.ActionLogger;
+import team8.catan.logging.ActionLogger;
+import team8.catan.logging.GameStateWriter;
 import team8.catan.players.Player;
+import team8.catan.players.PlayerColor;
 import team8.catan.rules.RuleChecker;
 
 import java.util.ArrayList;
@@ -48,7 +50,9 @@ public class GameTest {
             1,
             10,
             new FixedDice(2, 2),
-            logger
+            logger,
+            new NoOpStepForwardGate(),
+            new NoOpStateWriter()
         );
 
         game.run();
@@ -58,8 +62,8 @@ public class GameTest {
         assertEquals(1, board.getNode(2).getOwnerId());
         assertEquals(0, board.getEdge(0).getRoadOwnerId());
         assertEquals(1, board.getEdge(1).getRoadOwnerId());
-        assertEquals(2, player0.getResourceHand().totalCards());
-        assertEquals(2, player1.getResourceHand().totalCards());
+        assertEquals(2, player0.getTotalResourceCards());
+        assertEquals(2, player1.getTotalResourceCards());
         assertEquals(6, logger.loggedActions.size());
         assertEquals(1, logger.roundLogs);
     }
@@ -69,7 +73,7 @@ public class GameTest {
         private int index;
 
         private ScriptedPlayer(int id, List<Action> scriptedActions) {
-            super(id);
+            super(id, PlayerColor.values()[id % PlayerColor.values().length]);
             this.scriptedActions = new ArrayList<>(scriptedActions);
         }
 
@@ -103,13 +107,19 @@ public class GameTest {
         private int roundLogs;
 
         @Override
-        public void logAction(boolean setupPhase, Player player, Action action, boolean applied) {
+        public void logAction(int round, Player player, Action action, boolean applied) {
             loggedActions.add(action);
         }
 
         @Override
         public void logRoundVictoryPoints(int round, List<Player> players) {
             roundLogs++;
+        }
+    }
+
+    private static final class NoOpStateWriter implements GameStateWriter {
+        @Override
+        public void write(Board board, List<Player> players, List<team8.catan.logging.RoadPlacement> roadOrder) {
         }
     }
 
