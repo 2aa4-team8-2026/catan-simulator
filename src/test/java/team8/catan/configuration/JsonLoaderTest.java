@@ -8,6 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class JsonLoaderTest {
     @TempDir
@@ -31,6 +33,8 @@ public class JsonLoaderTest {
         assertEquals(40, config.getMaxRounds());
         assertEquals(9, config.getVictoryPointsToWin());
         assertEquals(2, config.getStartingResourcesPerType());
+        assertEquals("base_map.json", config.getBaseMapPath());
+        assertEquals("state.json", config.getStatePath());
     }
 
     @Test
@@ -51,5 +55,19 @@ public class JsonLoaderTest {
         assertEquals(25, config.getMaxRounds());
         assertEquals(8, config.getVictoryPointsToWin());
         assertEquals(1, config.getStartingResourcesPerType());
+        assertEquals("base_map.json", config.getBaseMapPath());
+        assertEquals("state.json", config.getStatePath());
+
+        Path invalidFile = tempDir.resolve("missing-required-field.json");
+        Files.writeString(invalidFile, """
+            {
+              "numPlayers": 4,
+              "victoryPointsToWin": 8,
+              "startingResourcesPerType": 1
+            }
+            """);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> new JsonLoader().load(invalidFile));
+        assertTrue(ex.getMessage().contains("turns/maxRounds"));
     }
 }
