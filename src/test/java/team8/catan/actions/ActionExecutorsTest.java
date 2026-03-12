@@ -10,6 +10,7 @@ import team8.catan.support.TestPlayer;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ActionExecutorsTest {
@@ -35,11 +36,18 @@ public class ActionExecutorsTest {
         assertEquals(StructureType.SETTLEMENT, board.getNode(0).getStructureType());
         assertEquals(1, player.getVictoryPoints());
         assertEquals(1, player.getResourceHand().totalCards());
+        assertFalse(new BuildSettlementExecutor().execute(
+            board,
+            player,
+            new Action(ActionType.BUILD_SETTLEMENT, 0),
+            true
+        ));
+        assertEquals(ActionType.BUILD_SETTLEMENT, new BuildSettlementExecutor().supportedType());
     }
 
     @Test
     void BuildCityExecutor_upgradesOwnedSettlementAwardsVpAndChargesCost() {
-        Board board = new Board(List.of(new Node(0)), List.of());
+        Board board = new Board(List.of(new Node(0), new Node(1)), List.of(new team8.catan.board.Edge(0, 0, 1)));
         board.getNode(0).placeSettlement(4);
         TestPlayer player = new TestPlayer(4);
         player.addVictoryPoints(1);
@@ -60,5 +68,22 @@ public class ActionExecutorsTest {
         assertEquals(2, player.getVictoryPoints());
         assertEquals(2, player.getResourceHand().totalCards());
         assertTrue(player.getResourceHand().canAfford(ActionType.BUILD_ROAD));
+        assertFalse(new BuildCityExecutor().execute(
+            board,
+            new TestPlayer(5),
+            new Action(ActionType.BUILD_CITY, 0),
+            true
+        ));
+        assertTrue(new BuildRoadExecutor().execute(
+            board,
+            player,
+            new Action(ActionType.BUILD_ROAD, 0),
+            false
+        ));
+        assertEquals(4, board.getEdge(0).getRoadOwnerId());
+        assertTrue(new PassExecutor().execute(board, player, new Action(ActionType.PASS, -1), true));
+        assertEquals(ActionType.BUILD_CITY, new BuildCityExecutor().supportedType());
+        assertEquals(ActionType.BUILD_ROAD, new BuildRoadExecutor().supportedType());
+        assertEquals(ActionType.PASS, new PassExecutor().supportedType());
     }
 }

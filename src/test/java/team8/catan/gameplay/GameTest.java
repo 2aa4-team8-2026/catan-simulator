@@ -2,20 +2,33 @@ package team8.catan.gameplay;
 
 import org.junit.jupiter.api.Test;
 import team8.catan.actions.Action;
+import team8.catan.actions.ActionTarget;
 import team8.catan.actions.ActionType;
+import team8.catan.actions.TargetKind;
 import team8.catan.board.Board;
 import team8.catan.board.Edge;
 import team8.catan.board.Node;
 import team8.catan.board.ResourceType;
+import team8.catan.dice.Dice;
+import team8.catan.dice.TwoDice;
+import team8.catan.output.ConsoleActionLogger;
 import team8.catan.output.ActionLogger;
 import team8.catan.players.Player;
+import team8.catan.players.RandomAgent;
 import team8.catan.rules.RuleChecker;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GameTest {
     @Test
@@ -62,6 +75,65 @@ public class GameTest {
         assertEquals(2, player1.getResourceHand().totalCards());
         assertEquals(6, logger.loggedActions.size());
         assertEquals(1, logger.roundLogs);
+        List<Player> copiedPlayers = game.getPlayers();
+        copiedPlayers.clear();
+        assertEquals(2, game.getPlayers().size());
+
+        player0.addVictoryPoints(10);
+        Game alreadyWon = new Game(
+            new Board(List.of(new Node(0)), List.of()),
+            List.of(player0),
+            new StubRuleChecker(),
+            1,
+            10,
+            new FixedDice(7),
+            logger
+        );
+        assertTrue(alreadyWon.shouldTerminate());
+
+        String consoleOutput = captureStdout(() -> {
+            ConsoleActionLogger consoleActionLogger = new ConsoleActionLogger();
+            consoleActionLogger.logAction(false, player0, new Action(ActionType.PASS, -1), true);
+            consoleActionLogger.logAction(true, player1, new Action(ActionType.BUILD_SETTLEMENT, 2), false);
+            consoleActionLogger.logRoundVictoryPoints(1, List.of(player0, player1));
+        });
+        assertTrue(consoleOutput.contains("TURN|P0|PASS|-1|OK"));
+        assertTrue(consoleOutput.contains("SETUP|P1|BUILD_SETTLEMENT|2|REJECTED"));
+        assertTrue(consoleOutput.contains("ROUND_END|1|VP|P0=11|P1=1"));
+
+        RandomAgent randomAgent = new RandomAgent(2, new FixedRandom(0, 1));
+        Action noBuildAction = randomAgent.chooseAction(
+            new Board(List.of(), List.of()),
+            new EmptyLegalActionRuleChecker(),
+            GamePhase.RUNNING
+        );
+        assertEquals(ActionType.PASS, noBuildAction.getActionType());
+        for (ResourceType type : ResourceType.values()) {
+            randomAgent.getResourceHand().add(type, 2);
+        }
+        Action selectedBuild = randomAgent.chooseAction(
+            new Board(List.of(), List.of()),
+            new FixedLegalActionRuleChecker(List.of(
+                new Action(ActionType.PASS, -1),
+                new Action(ActionType.BUILD_SETTLEMENT, 9)
+            )),
+            GamePhase.RUNNING
+        );
+        assertEquals(ActionType.BUILD_SETTLEMENT, selectedBuild.getActionType());
+
+        ActionTarget none = ActionTarget.none();
+        ActionTarget edgeTarget = ActionTarget.of(TargetKind.EDGE, 3);
+        assertEquals(TargetKind.NONE, none.getKind());
+        assertEquals(ActionTarget.NO_TARGET_ID, none.getId());
+        assertEquals(edgeTarget, ActionTarget.of(TargetKind.EDGE, 3));
+        assertEquals(edgeTarget.hashCode(), ActionTarget.of(TargetKind.EDGE, 3).hashCode());
+        assertNotEquals(edgeTarget, none);
+
+        Dice fixedRangeDice = new Dice(2, 4, new FixedRandom(0, 2));
+        assertEquals(2, fixedRangeDice.roll());
+        assertEquals(4, fixedRangeDice.roll());
+        assertThrows(IllegalArgumentException.class, () -> new Dice(5, 4, new Random(0)));
+        assertEquals(2, new TwoDice(1, 1).roll());
     }
 
     private static final class ScriptedPlayer extends Player {
@@ -110,6 +182,54 @@ public class GameTest {
         @Override
         public void logRoundVictoryPoints(int round, List<Player> players) {
             roundLogs++;
+        }
+    }
+
+    private static final class FixedRandom extends Random {
+        private final int[] values;
+        private int index;
+
+        private FixedRandom(int... values) {
+            this.values = values;
+        }
+
+        @Override
+        public int nextInt(int bound) {
+            int value = values[index % values.length];
+            index++;
+            return Math.floorMod(value, bound);
+        }
+    }
+
+    private static final class EmptyLegalActionRuleChecker extends RuleChecker {
+        @Override
+        public List<Action> getLegalActions(Board board, Player player, GamePhase phase) {
+            return List.of();
+        }
+    }
+
+    private static final class FixedLegalActionRuleChecker extends RuleChecker {
+        private final List<Action> actions;
+
+        private FixedLegalActionRuleChecker(List<Action> actions) {
+            this.actions = actions;
+        }
+
+        @Override
+        public List<Action> getLegalActions(Board board, Player player, GamePhase phase) {
+            return actions;
+        }
+    }
+
+    private static String captureStdout(Runnable action) {
+        PrintStream original = System.out;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            System.setOut(new PrintStream(out, true, StandardCharsets.UTF_8));
+            action.run();
+            return out.toString(StandardCharsets.UTF_8);
+        } finally {
+            System.setOut(original);
         }
     }
 
