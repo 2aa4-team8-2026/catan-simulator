@@ -21,6 +21,8 @@ import team8.catan.players.HumanPlayer;
 import team8.catan.players.Player;
 import team8.catan.players.PlayerColor;
 import team8.catan.players.RandomAgent;
+import team8.catan.players.strategy.ImmediateValueStrategy;
+import team8.catan.players.strategy.ValueBasedActionSelectionPolicy;
 import team8.catan.rules.RuleChecker;
 
 import java.io.IOException;
@@ -28,6 +30,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Scanner;
 
 public class GameFactory {
@@ -137,7 +140,15 @@ public class GameFactory {
             if (humanPlayerIndex != null && i == humanPlayerIndex) {
                 players.add(new HumanPlayer(i, color, inputPort, parser));
             } else {
-                players.add(new RandomAgent(i, color));
+                Random random = new Random();
+                players.add(
+                    new RandomAgent(
+                        i,
+                        color,
+                        random,
+                        new ValueBasedActionSelectionPolicy(new ImmediateValueStrategy(random)) // default to value strategy
+                    )
+                );
             }
         }
         return players;
