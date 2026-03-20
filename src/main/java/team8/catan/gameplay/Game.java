@@ -5,6 +5,11 @@ import team8.catan.board.Board;
 import team8.catan.board.Node;
 import team8.catan.board.ResourceType;
 import team8.catan.board.StructureType;
+import team8.catan.gameplay.commands.BuildCityCommand;
+import team8.catan.gameplay.commands.BuildRoadCommand;
+import team8.catan.gameplay.commands.BuildSettlementCommand;
+import team8.catan.gameplay.commands.CommandHistory;
+import team8.catan.gameplay.commands.UndoableCommand;
 import team8.catan.players.Player;
 import team8.catan.rules.RuleChecker;
 import team8.catan.dice.Dice;
@@ -15,9 +20,7 @@ import team8.catan.logging.GameStateWriter;
 import team8.catan.logging.RoadPlacement;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public class Game {
@@ -27,7 +30,7 @@ public class Game {
     private final Dice dice;
     private final int maxRounds;
     private final int victoryPointsToWin;
-    private final Map<ActionType, ActionExecutor> executors;
+    private final CommandHistory commandHistory;
     private final ActionLogger actionLogger;
     private final StepForwardGate stepForwardGate;
     private final GameStateWriter stateWriter;
@@ -88,7 +91,7 @@ public class Game {
         this.dice = Objects.requireNonNull(dice, "dice");
         this.maxRounds = maxRounds;
         this.victoryPointsToWin = victoryPointsToWin;
-        this.executors = buildExecutors();
+        this.commandHistory = new CommandHistory();
         this.actionLogger = Objects.requireNonNull(actionLogger, "actionLogger");
         this.stepForwardGate = Objects.requireNonNull(stepForwardGate, "stepForwardGate");
         this.stateWriter = Objects.requireNonNull(stateWriter, "stateWriter");
@@ -144,7 +147,7 @@ public class Game {
     }
 
     private void executeSetupAction(Player player, ActionType requiredType) {
-        Action chosenAction = player.chooseAction(board, ruleChecker, phase);
+        Action chosenAction = chooseActionHandlingControls(player);
         if (chosenAction == null
             || chosenAction.getActionType() != requiredType
             || !ruleChecker.isLegal(chosenAction, board, player, phase)) {
@@ -184,7 +187,7 @@ public class Game {
             distributeResources(diceRoll);
         }
 
-        Action action = player.chooseAction(board, ruleChecker, phase);
+        Action action = chooseActionHandlingControls(player);
 
         // double check if action is valid
         if (action == null || !ruleChecker.isLegal(action, board, player, phase)) {
@@ -223,41 +226,11 @@ public class Game {
     }
 
     private boolean executeAction(Player player, Action action, boolean chargeCost) {
-        ActionExecutor executor = executors.get(action.getActionType());
-        if (executor == null) {
-            throw new IllegalStateException("No executor registered for action type: " + action.getActionType());
+        if (action.getActionType() == ActionType.PASS) {
+            return true;
         }
-        boolean applied = executor.execute(board, player, action, chargeCost);
-        if (applied && action.getActionType() == ActionType.BUILD_ROAD) {
-            roadPlacementOrder.add(new RoadPlacement(action.getTargetId(), player.getId()));
-        }
-        return applied;
-    }
-
-    private Map<ActionType, ActionExecutor> buildExecutors() {
-        List<ActionExecutor> executorList = List.of(
-            new BuildRoadExecutor(),
-            new BuildSettlementExecutor(),
-            new BuildCityExecutor(),
-            new PassExecutor()
-        );
-
-        Map<ActionType, ActionExecutor> registry = new EnumMap<>(ActionType.class);
-        for (ActionExecutor executor : executorList) {
-            ActionType actionType = executor.supportedType();
-            ActionExecutor previous = registry.put(actionType, executor);
-            if (previous != null) {
-                throw new IllegalStateException("Duplicate executor registration for action type: " + actionType);
-            }
-        }
-
-        for (ActionType actionType : ActionType.values()) {
-            if (!registry.containsKey(actionType)) {
-                throw new IllegalStateException("Missing executor for action type: " + actionType);
-            }
-        }
-
-        return registry;
+        UndoableCommand command = buildCommand(player, action, chargeCost);
+        return commandHistory.execute(command);
     }
 
     private ResourceType resourceTypeForRoll(int diceRoll) {
@@ -273,5 +246,50 @@ public class Game {
             }
         }
         return null;
+    }
+
+    private UndoableCommand buildCommand(Player player, Action action, boolean chargeCost) {
+        return switch (action.getActionType()) {
+            case BUILD_ROAD -> new BuildRoadCommand(board, player, action, chargeCost, roadPlacementOrder);
+            case BUILD_SETTLEMENT -> new BuildSettlementCommand(board, player, action, chargeCost, roadPlacementOrder);
+            case BUILD_CITY -> new BuildCityCommand(board, player, action, chargeCost, roadPlacementOrder);
+            default -> throw new IllegalStateException("No command registered for action type: " + action.getActionType());
+        };
+    }
+
+    private Action chooseActionHandlingControls(Player player) {
+        while (true) {
+            Action action = player.chooseAction(board, ruleChecker, phase);
+            if (action == null) {
+                return null;
+            }
+            if (action.getActionType() == ActionType.UNDO) {
+                handleUndo();
+                continue;
+            }
+            if (action.getActionType() == ActionType.REDO) {
+                handleRedo();
+                continue;
+            }
+            return action;
+        }
+    }
+
+    private void handleUndo() {
+        if (commandHistory.undo()) {
+            actionLogger.logInfo("Undo applied.");
+            stateWriter.write(board, players, roadPlacementOrder);
+            return;
+        }
+        actionLogger.logInfo("Nothing to undo.");
+    }
+
+    private void handleRedo() {
+        if (commandHistory.redo()) {
+            actionLogger.logInfo("Redo applied.");
+            stateWriter.write(board, players, roadPlacementOrder);
+            return;
+        }
+        actionLogger.logInfo("Nothing to redo.");
     }
 }

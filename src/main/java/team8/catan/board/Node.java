@@ -37,4 +37,9 @@ public class Node {
     public void upgradeToCity() {
         this.structureType = StructureType.CITY;
     }
+
+    public void restoreState(int ownerId, StructureType structureType) {
+        this.ownerId = ownerId;
+        this.structureType = structureType;
+    }
 }

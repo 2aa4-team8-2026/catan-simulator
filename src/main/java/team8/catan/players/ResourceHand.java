@@ -48,6 +48,13 @@ final class ResourceHand {
         return new LinkedHashMap<>(counts);
     }
 
+    public void restore(Map<ResourceType, Integer> snapshot) {
+        counts.clear();
+        for (ResourceType type : ResourceType.values()) {
+            counts.put(type, snapshot.getOrDefault(type, 0));
+        }
+    }
+
     public int discardRandomCards(int count, Random random) {
         if (count <= 0) {
             return 0;

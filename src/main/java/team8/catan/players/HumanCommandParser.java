@@ -34,6 +34,12 @@ public class HumanCommandParser {
         if (input.equalsIgnoreCase("list") || input.equalsIgnoreCase("ls")) {
             return HumanCommand.list();
         }
+        if (input.equalsIgnoreCase("undo")) {
+            return HumanCommand.undo();
+        }
+        if (input.equalsIgnoreCase("redo")) {
+            return HumanCommand.redo();
+        }
         if (input.equalsIgnoreCase("build") || input.equalsIgnoreCase("b")) {
             return HumanCommand.buildMenu();
         }
@@ -43,7 +49,7 @@ public class HumanCommandParser {
             return directBuild;
         }
 
-        return HumanCommand.invalid("Unknown command. Use b, ls, or Enter(go).");
+        return HumanCommand.invalid("Unknown command. Use b, ls, undo, redo, or Enter(go).");
     }
 
     public ActionType parseBuildActionType(String rawInput) {

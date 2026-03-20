@@ -44,6 +44,7 @@ public class ActionGenerationService {
             case BUILD_SETTLEMENT -> settlementTargets(board);
             case BUILD_CITY -> cityTargets(board, player);
             case BUILD_ROAD -> roadTargets(board, player);
+            case UNDO, REDO -> new int[0];
         };
     }
 

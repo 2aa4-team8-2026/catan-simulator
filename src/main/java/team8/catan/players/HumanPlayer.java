@@ -181,9 +181,9 @@ public class HumanPlayer extends Player {
     void printPossibleActions(Board board, RuleChecker ruleChecker, GamePhase phase) {
         List<Action> legalActions = ruleChecker.getLegalActions(board, this, phase);
         if (isMandatorySetupPhase(phase)) {
-            printLine("Possible actions now: ls=list, b=build.");
+            printLine("Possible actions now: ls=list, undo, redo, b=build.");
         } else {
-            printLine("Possible actions now: Enter=pass, ls=list, b=build.");
+            printLine("Possible actions now: Enter=pass, ls=list, undo, redo, b=build.");
         }
         boolean hasBuildAction = false;
         for (Action action : legalActions) {

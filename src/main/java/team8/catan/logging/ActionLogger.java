@@ -9,4 +9,7 @@ public interface ActionLogger {
     void logAction(int round, Player player, Action action, boolean applied);
 
     void logRoundVictoryPoints(int round, List<Player> players);
+
+    default void logInfo(String message) {
+    }
 }
