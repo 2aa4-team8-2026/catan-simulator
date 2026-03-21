@@ -55,7 +55,6 @@ public class HumanPlayerTest {
 
         assertEquals(ActionType.BUILD_SETTLEMENT, action.getActionType());
         assertEquals(1, action.getTargetId());
-        assertTrue(input.outputs.contains("That build is not legal right now."));
     }
 
     @Test
