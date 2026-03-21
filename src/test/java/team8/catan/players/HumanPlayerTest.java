@@ -102,6 +102,49 @@ public class HumanPlayerTest {
         assertTrue(input.outputs.contains("bad input"));
     }
 
+    @Test
+    void promptForBuildAction_allowsCancelAtBuildTypeOrTargetInRunningPhase() {
+        HumanPlayer playerCancelType = new HumanPlayer(0, PlayerColor.RED, new RecordingInputPort(""), new HumanCommandParser());
+        HumanPlayer playerCancelTarget = new HumanPlayer(0, PlayerColor.RED, new RecordingInputPort("s", ""), new HumanCommandParser());
+        RuleChecker ruleChecker = new FixedRuleChecker(List.of(new Action(ActionType.BUILD_SETTLEMENT, 0)));
+        Board board = new Board(List.of(new Node(0)), List.of());
+
+        assertNull(playerCancelType.promptForBuildAction(board, ruleChecker, GamePhase.RUNNING));
+        assertNull(playerCancelTarget.promptForBuildAction(board, ruleChecker, GamePhase.RUNNING));
+    }
+
+    @Test
+    void promptForBuildAction_forRoad_repromptsOnBadFormattingAndNonIntegerEndpoints() {
+        RecordingInputPort input = new RecordingInputPort("r", "0", "a b", "0 1");
+        HumanPlayer player = new HumanPlayer(0, PlayerColor.RED, input, new HumanCommandParser());
+        RuleChecker ruleChecker = new FixedRuleChecker(List.of(new Action(ActionType.BUILD_ROAD, 0)));
+        Board board = new Board(List.of(new Node(0), new Node(1)), List.of(new Edge(0, 0, 1)));
+
+        Action action = player.promptForBuildAction(board, ruleChecker, GamePhase.RUNNING);
+
+        assertEquals(ActionType.BUILD_ROAD, action.getActionType());
+        assertTrue(input.outputs.contains("Enter exactly 2 node ids, e.g. 12,19"));
+        assertTrue(input.outputs.contains("Node ids must be integers."));
+    }
+
+    @Test
+    void humanCommand_executeDirectBuild_coversWrongPhaseAndIllegalBuild() {
+        RecordingInputPort input = new RecordingInputPort();
+        HumanPlayer player = new HumanPlayer(0, PlayerColor.RED, input, new HumanCommandParser());
+        Board board = new Board(List.of(new Node(0), new Node(1)), List.of(new Edge(0, 0, 1)));
+        RuleChecker ruleChecker = new SelectivelyLegalRuleChecker(
+            List.of(new Action(ActionType.BUILD_SETTLEMENT, 1)),
+            List.of()
+        );
+
+        assertNull(HumanCommand.buildCity(0).executeAction(player, board, ruleChecker, GamePhase.SETUP_SETTLEMENT));
+        assertNull(HumanCommand.buildSettlement(0).executeAction(player, board, ruleChecker, GamePhase.RUNNING));
+
+        assertTrue(input.outputs.contains("That build type is not available in this phase."));
+        assertTrue(input.outputs.contains("That build is not legal right now."));
+        assertTrue(input.outputs.stream().anyMatch(line -> line.startsWith("Settlement nodes: 1")));
+    }
+
     private static final class RecordingInputPort implements HumanInputPort {
         private final Deque<String> inputs = new ArrayDeque<>();
         private final List<String> outputs = new ArrayList<>();

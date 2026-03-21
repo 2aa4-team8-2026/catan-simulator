@@ -10,6 +10,7 @@ import team8.catan.support.TestPlayer;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ResourceDistributionCommandTest {
@@ -35,5 +36,21 @@ public class ResourceDistributionCommandTest {
         assertTrue(command.redo());
         assertEquals(1, player0.getResourceCount(ResourceType.BRICK));
         assertEquals(2, player1.getResourceCount(ResourceType.BRICK));
+    }
+
+    @Test
+    void guardBranchesPreventReexecuteAndRedoWhileAppliedAndSkipUnownedNodes() {
+        Board board = new Board(List.of(new Node(0), new Node(1)), List.of());
+        board.getNode(0).restoreState(Node.UNOWNED, null);
+        board.getNode(1).restoreState(2, StructureType.SETTLEMENT);
+        TestPlayer player = new TestPlayer(2);
+        ResourceDistributionCommand command = new ResourceDistributionCommand(board, List.of(player), 3);
+
+        command.undo();
+        assertFalse(command.redo());
+        assertTrue(command.execute());
+        assertFalse(command.execute());
+        assertFalse(command.redo());
+        assertEquals(1, player.getTotalResourceCards());
     }
 }
