@@ -6,25 +6,24 @@ import team8.catan.board.ResourceType;
 import team8.catan.gameplay.GamePhase;
 import team8.catan.players.Player;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
-public class ImmediateValueStrategy implements ActionValuationStrategy {
+public class ImmediateValueSelectionPolicy extends AbstractValuationSelectionPolicy {
     private static final double VICTORY_POINT_VALUE = 1.0;
     private static final double BUILD_WITHOUT_VP_VALUE = 0.8;
     private static final double LOW_HAND_VALUE = 0.5;
 
     private final Random random;
 
-    public ImmediateValueStrategy(Random random) {
+    public ImmediateValueSelectionPolicy(Random random) {
         this.random = Objects.requireNonNull(random, "random");
     }
 
     @Override
-    public double score(Action action, Player player, GamePhase phase) {
+    protected double score(Action action, Player player, GamePhase phase) {
         double total = baseValue(action.getActionType());
         if (spendsCardsToBelowFive(action, player)) {
             total += LOW_HAND_VALUE;
@@ -33,21 +32,7 @@ public class ImmediateValueStrategy implements ActionValuationStrategy {
     }
 
     @Override
-    public Action chooseBest(List<Action> legalActions, Player player, GamePhase phase) {
-        List<Action> bestActions = new ArrayList<>();
-        double bestScore = Double.NEGATIVE_INFINITY;
-
-        for (Action action : legalActions) {
-            double score = score(action, player, phase);
-            if (score > bestScore) {
-                bestScore = score;
-                bestActions.clear();
-                bestActions.add(action);
-            } else if (Double.compare(score, bestScore) == 0) {
-                bestActions.add(action);
-            }
-        }
-
+    protected Action breakTie(List<Action> bestActions) {
         return bestActions.get(random.nextInt(bestActions.size()));
     }
 

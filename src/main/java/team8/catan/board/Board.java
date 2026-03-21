@@ -67,6 +67,10 @@ public class Board {
         robberTileId = tileId;
     }
 
+    public void restoreRobberTileId(int tileId) {
+        robberTileId = tileId;
+    }
+
     public int getRandomTileId(Random random) {
         if (tiles.isEmpty()) {
             return -1;
