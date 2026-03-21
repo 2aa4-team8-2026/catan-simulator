@@ -2,7 +2,6 @@ package team8.catan.gameplay;
 
 import team8.catan.actions.*;
 import team8.catan.board.Board;
-import team8.catan.board.Node;
 import team8.catan.gameplay.commands.BuildCityCommand;
 import team8.catan.gameplay.commands.BuildRoadCommand;
 import team8.catan.gameplay.commands.BuildSettlementCommand;
@@ -241,15 +240,6 @@ public class Game {
         }
         UndoableCommand command = buildCommand(player, action, chargeCost);
         return commandHistory.execute(command);
-    }
-
-    private Player getPlayerById(int playerId) {
-        for (Player player : players) {
-            if (player.getId() == playerId) {
-                return player;
-            }
-        }
-        return null;
     }
 
     private UndoableCommand buildCommand(Player player, Action action, boolean chargeCost) {
