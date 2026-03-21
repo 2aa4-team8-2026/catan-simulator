@@ -24,6 +24,8 @@ public class ConsoleActionLoggerTest {
             player.addVictoryPoints(3);
 
             logger.logAction(4, player, new Action(ActionType.PASS, -1), true);
+            logger.logAction(4, player, new Action(ActionType.BUILD_SETTLEMENT, 3), true);
+            logger.logAction(4, player, new Action(ActionType.UNDO, -1), true);
             logger.logAction(4, player, new Action(ActionType.BUILD_ROAD, 1), false);
             logger.logRoundVictoryPoints(4, List.of(player));
             logger.logInfo("redo applied");
@@ -33,6 +35,8 @@ public class ConsoleActionLoggerTest {
 
         String output = out.toString(StandardCharsets.UTF_8);
         assertTrue(output.contains("[4] / P2: passed"));
+        assertTrue(output.contains("[4] / P2: built a settlement on node 3"));
+        assertTrue(output.contains("[4] / P2: undo"));
         assertTrue(output.contains("attempted to build a road on edge 1, but it was rejected"));
         assertTrue(output.contains("finished round 4 with 3 victory points"));
         assertTrue(output.contains("[info] redo applied"));

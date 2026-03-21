@@ -67,4 +67,27 @@ public class BuildCityCommandTest {
 
         assertFalse(command.execute());
     }
+
+    @Test
+    void commandGuardsPreventDoubleExecuteRedoWhileAppliedAndRedoBeforeExecute() {
+        Board board = new Board(List.of(new Node(0)), List.of());
+        board.getNode(0).restoreState(4, StructureType.SETTLEMENT);
+        TestPlayer player = new TestPlayer(4);
+        player.grantResource(ResourceType.ORE, 3);
+        player.grantResource(ResourceType.GRAIN, 2);
+
+        BuildCityCommand command = new BuildCityCommand(
+            board,
+            player,
+            new Action(ActionType.BUILD_CITY, 0),
+            true,
+            new ArrayList<RoadPlacement>()
+        );
+
+        command.undo();
+        assertFalse(command.redo());
+        assertTrue(command.execute());
+        assertFalse(command.execute());
+        assertFalse(command.redo());
+    }
 }
