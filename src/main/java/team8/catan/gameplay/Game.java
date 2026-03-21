@@ -3,14 +3,15 @@ package team8.catan.gameplay;
 import team8.catan.actions.*;
 import team8.catan.board.Board;
 import team8.catan.board.Node;
-import team8.catan.board.ResourceType;
-import team8.catan.board.StructureType;
 import team8.catan.gameplay.commands.BuildCityCommand;
 import team8.catan.gameplay.commands.BuildRoadCommand;
 import team8.catan.gameplay.commands.BuildSettlementCommand;
 import team8.catan.gameplay.commands.CommandHistory;
+import team8.catan.gameplay.commands.TurnCommand;
+import team8.catan.gameplay.commands.TurnResolutionCommand;
 import team8.catan.gameplay.commands.UndoableCommand;
 import team8.catan.players.Player;
+import team8.catan.rules.RobberService;
 import team8.catan.rules.RuleChecker;
 import team8.catan.dice.Dice;
 import team8.catan.dice.TwoDice;
@@ -35,6 +36,7 @@ public class Game {
     private final StepForwardGate stepForwardGate;
     private final GameStateWriter stateWriter;
     private final List<RoadPlacement> roadPlacementOrder;
+    private final RobberService robberService;
 
     private int round;
     private GamePhase phase;
@@ -49,7 +51,8 @@ public class Game {
             new TwoDice(),
             new ConsoleActionLogger(),
             new NoOpStepForwardGate(),
-            (ignoredBoard, ignoredPlayers, ignoredRoadOrder) -> { }
+            (ignoredBoard, ignoredPlayers, ignoredRoadOrder) -> { },
+            new RobberService()
         );
     }
 
@@ -70,7 +73,8 @@ public class Game {
             dice,
             new ConsoleActionLogger(),
             new NoOpStepForwardGate(),
-            (ignoredBoard, ignoredPlayers, ignoredRoadOrder) -> { }
+            (ignoredBoard, ignoredPlayers, ignoredRoadOrder) -> { },
+            new RobberService()
         );
     }
 
@@ -85,6 +89,32 @@ public class Game {
         StepForwardGate stepForwardGate,
         GameStateWriter stateWriter
     ) {
+        this(
+            board,
+            players,
+            ruleChecker,
+            maxRounds,
+            victoryPointsToWin,
+            dice,
+            actionLogger,
+            stepForwardGate,
+            stateWriter,
+            new RobberService()
+        );
+    }
+
+    Game(
+        Board board,
+        List<Player> players,
+        RuleChecker ruleChecker,
+        int maxRounds,
+        int victoryPointsToWin,
+        Dice dice,
+        ActionLogger actionLogger,
+        StepForwardGate stepForwardGate,
+        GameStateWriter stateWriter,
+        RobberService robberService
+    ) {
         this.board = Objects.requireNonNull(board, "board");
         this.players = new ArrayList<>(Objects.requireNonNull(players, "players"));
         this.ruleChecker = Objects.requireNonNull(ruleChecker, "ruleChecker");
@@ -95,6 +125,7 @@ public class Game {
         this.actionLogger = Objects.requireNonNull(actionLogger, "actionLogger");
         this.stepForwardGate = Objects.requireNonNull(stepForwardGate, "stepForwardGate");
         this.stateWriter = Objects.requireNonNull(stateWriter, "stateWriter");
+        this.robberService = Objects.requireNonNull(robberService, "robberService");
         this.roadPlacementOrder = new ArrayList<>();
         this.round = 0;
         this.phase = GamePhase.SETUP_SETTLEMENT;
@@ -181,20 +212,21 @@ public class Game {
 
     private void executeTurn(Player player) {
         int diceRoll = rollDice();
-
-        ruleChecker.onDiceRolled(diceRoll, player, board, players, phase);
-        if (diceRoll != 7) {
-            distributeResources(diceRoll);
-        }
-
-        Action action = chooseActionHandlingControls(player);
+        TurnCommand turnCommand = new TurnCommand(
+            round,
+            player.getId(),
+            diceRoll,
+            buildTurnResolutionCommand(player, diceRoll)
+        );
+        boolean turnStarted = commandHistory.execute(turnCommand);
+        Action action = chooseActionHandlingControls(player, turnCommand);
 
         // double check if action is valid
         if (action == null || !ruleChecker.isLegal(action, board, player, phase)) {
             action = new Action(ActionType.PASS, ActionTarget.NO_TARGET_ID);
         }
 
-        boolean applied = executeAction(player, action, true);
+        boolean applied = turnStarted && executeTurnAction(turnCommand, player, action);
         actionLogger.logAction(round, player, action, applied);
         stateWriter.write(board, players, roadPlacementOrder);
     }
@@ -203,40 +235,12 @@ public class Game {
         return dice.roll();
     }
 
-    private void distributeResources(int diceRoll) {
-        // Simplified production model for this assignment scaffold:
-        // each settlement gives 1 resource and each city gives 2 of a roll-derived resource.
-        ResourceType producedType = resourceTypeForRoll(diceRoll);
-        for (Node node : board.getNodes()) {
-            if (node.getOwnerId() == Node.UNOWNED) {
-                continue;
-            }
-            if (node.getStructureType() == null) {
-                continue;
-            }
-
-            Player owner = getPlayerById(node.getOwnerId());
-            if (owner == null) {
-                continue;
-            }
-
-            int amount = node.getStructureType() == StructureType.CITY ? 2 : 1;
-            owner.grantResource(producedType, amount);
-        }
-    }
-
     private boolean executeAction(Player player, Action action, boolean chargeCost) {
         if (action.getActionType() == ActionType.PASS) {
             return true;
         }
         UndoableCommand command = buildCommand(player, action, chargeCost);
         return commandHistory.execute(command);
-    }
-
-    private ResourceType resourceTypeForRoll(int diceRoll) {
-        ResourceType[] all = ResourceType.values();
-        int index = Math.floorMod(diceRoll - 2, all.length);
-        return all[index];
     }
 
     private Player getPlayerById(int playerId) {
@@ -258,9 +262,17 @@ public class Game {
     }
 
     private Action chooseActionHandlingControls(Player player) {
+        return chooseActionHandlingControls(player, null);
+    }
+
+    private Action chooseActionHandlingControls(Player player, TurnCommand activeTurn) {
         while (true) {
             Action action = player.chooseAction(board, ruleChecker, phase);
             if (action == null) {
+                if (activeTurn != null && !activeTurn.isApplied()) {
+                    actionLogger.logInfo("Redo the current turn before ending it.");
+                    continue;
+                }
                 return null;
             }
             if (action.getActionType() == ActionType.UNDO) {
@@ -271,8 +283,24 @@ public class Game {
                 handleRedo();
                 continue;
             }
+            if (activeTurn != null && !activeTurn.isApplied()) {
+                actionLogger.logInfo("Redo the current turn before choosing an action.");
+                continue;
+            }
             return action;
         }
+    }
+
+    private boolean executeTurnAction(TurnCommand turnCommand, Player player, Action action) {
+        if (action.getActionType() == ActionType.PASS) {
+            return turnCommand.attachPlayerAction(action, null);
+        }
+        UndoableCommand actionCommand = buildCommand(player, action, true);
+        return turnCommand.attachPlayerAction(action, actionCommand);
+    }
+
+    private TurnResolutionCommand buildTurnResolutionCommand(Player player, int diceRoll) {
+        return new TurnResolutionCommand(board, player, players, diceRoll, robberService);
     }
 
     private void handleUndo() {

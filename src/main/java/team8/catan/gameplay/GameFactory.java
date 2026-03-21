@@ -21,8 +21,7 @@ import team8.catan.players.HumanPlayer;
 import team8.catan.players.Player;
 import team8.catan.players.PlayerColor;
 import team8.catan.players.RandomAgent;
-import team8.catan.players.strategy.ImmediateValueStrategy;
-import team8.catan.players.strategy.ValueBasedActionSelectionPolicy;
+import team8.catan.players.strategy.ImmediateValueSelectionPolicy;
 import team8.catan.rules.RuleChecker;
 
 import java.io.IOException;
@@ -146,7 +145,7 @@ public class GameFactory {
                         i,
                         color,
                         random,
-                        new ValueBasedActionSelectionPolicy(new ImmediateValueStrategy(random)) // default to value strategy
+                        new ImmediateValueSelectionPolicy(random)
                     )
                 );
             }
