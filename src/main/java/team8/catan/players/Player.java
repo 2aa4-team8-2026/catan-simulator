@@ -39,6 +39,10 @@ public abstract class Player {
         this.victoryPoints += points;
     }
 
+    public void restoreVictoryPoints(int victoryPoints) {
+        this.victoryPoints = victoryPoints;
+    }
+
     public void applyActionCost(Action action) {
         applyActionCost(action.getActionType());
     }
@@ -61,6 +65,10 @@ public abstract class Player {
 
     public Map<ResourceType, Integer> getResourceSnapshot() {
         return resourceHand.snapshot();
+    }
+
+    public void restoreResourceSnapshot(Map<ResourceType, Integer> snapshot) {
+        resourceHand.restore(snapshot);
     }
 
     public int getTotalResourceCards() {

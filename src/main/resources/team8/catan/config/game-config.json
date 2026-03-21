@@ -3,7 +3,7 @@
   "startingResourcesPerType": 8,
   "turns": 30,
   "victoryPointsToWin": 10,
-  
+  "humanPlayerIndex": 0,
   "baseMapPath": "src/main/resources/team8/catan/game/base_map.json",
   "statePath": "src/main/resources/team8/catan/game/state.json"
 }

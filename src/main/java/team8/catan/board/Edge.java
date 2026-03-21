@@ -38,4 +38,8 @@ public class Edge {
     public void placeRoad(int playerId) {
         this.roadOwnerId = playerId;
     }
+
+    public void restoreRoadOwner(int roadOwnerId) {
+        this.roadOwnerId = roadOwnerId;
+    }
 }

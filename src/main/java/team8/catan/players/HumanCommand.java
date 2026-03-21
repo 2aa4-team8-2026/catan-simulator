@@ -51,6 +51,30 @@ public class HumanCommand {
                 return null;
             }
         },
+        UNDO {
+            @Override
+            Action executeAction(
+                HumanCommand command,
+                HumanPlayer player,
+                Board board,
+                RuleChecker ruleChecker,
+                GamePhase phase
+            ) {
+                return new Action(ActionType.UNDO, ActionTarget.NO_TARGET_ID);
+            }
+        },
+        REDO {
+            @Override
+            Action executeAction(
+                HumanCommand command,
+                HumanPlayer player,
+                Board board,
+                RuleChecker ruleChecker,
+                GamePhase phase
+            ) {
+                return new Action(ActionType.REDO, ActionTarget.NO_TARGET_ID);
+            }
+        },
         BUILD_MENU {
             @Override
             Action executeAction(
@@ -169,6 +193,14 @@ public class HumanCommand {
 
     public static HumanCommand list() {
         return new HumanCommand(HumanCommandType.LIST, null, null, null, null);
+    }
+
+    public static HumanCommand undo() {
+        return new HumanCommand(HumanCommandType.UNDO, null, null, null, null);
+    }
+
+    public static HumanCommand redo() {
+        return new HumanCommand(HumanCommandType.REDO, null, null, null, null);
     }
 
     public static HumanCommand buildMenu() {

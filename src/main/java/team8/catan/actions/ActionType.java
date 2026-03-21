@@ -49,6 +49,28 @@ public enum ActionType {
         public String describe(int targetId) {
             return "pass";
         }
+    },
+    UNDO(TargetKind.NONE, ActionFeature.CONTROL) {
+        @Override
+        public Map<ResourceType, Integer> getCost() {
+            return Map.of();
+        }
+
+        @Override
+        public String describe(int targetId) {
+            return "undo";
+        }
+    },
+    REDO(TargetKind.NONE, ActionFeature.CONTROL) {
+        @Override
+        public Map<ResourceType, Integer> getCost() {
+            return Map.of();
+        }
+
+        @Override
+        public String describe(int targetId) {
+            return "redo";
+        }
     };
 
     private final TargetKind targetKind;

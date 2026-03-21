@@ -30,6 +30,11 @@ public class ConsoleActionLogger implements ActionLogger {
         }
     }
 
+    @Override
+    public void logInfo(String message) {
+        System.out.println("[info] " + message);
+    }
+
     private static String prefix(int round, Player player) {
         return "[" + round + "] / P" + player.getId() + ": ";
     }

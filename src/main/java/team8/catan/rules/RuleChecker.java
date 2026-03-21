@@ -22,8 +22,7 @@ public class RuleChecker {
             new SettlementDistanceRuleModule(),
             new SettlementRoadConnectionRuleModule(),
             new CityRequiresSettlementRuleModule(),
-            new RoadConnectionRuleModule(),
-            new RobberRuleModule()
+            new RoadConnectionRuleModule()
         ));
     }
 

@@ -76,7 +76,28 @@ public class HumanCommandParserTest {
     void parse_malformedBuildCommand_returnsInvalidCommand() {
         HumanCommand command = parser.parse("build road 4");
 
-        assertCommand(command, HumanCommandType.INVALID, null, null, null, "Unknown command. Use b, ls, or Enter(go).");
+        assertCommand(
+            command,
+            HumanCommandType.INVALID,
+            null,
+            null,
+            null,
+            "Unknown command. Use b, ls, undo, redo, or Enter(go)."
+        );
+    }
+
+    @Test
+    void parse_undoCommand_returnsUndoCommand() {
+        HumanCommand command = parser.parse("undo");
+
+        assertCommand(command, HumanCommandType.UNDO, null, null, null, null);
+    }
+
+    @Test
+    void parse_redoCommand_returnsRedoCommand() {
+        HumanCommand command = parser.parse("redo");
+
+        assertCommand(command, HumanCommandType.REDO, null, null, null, null);
     }
 
     private static void assertCommand(
